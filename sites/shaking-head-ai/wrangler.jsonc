@@ -15,7 +15,7 @@
     }
   ],
   "vars": {
-    "BILLING_ENABLED": "0",
+    "BILLING_ENABLED": "1",
     "EMAIL_LOGIN_ENABLED": "0",
     "EMAIL_FROM": "noreply@shakingheadai.org",
     // To enable Rybbit, set this to your Rybbit API URL (e.g. https://rybbit.example.com/api) and add analytics.rybbit to site.config.ts.

@@ -7,6 +7,12 @@
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "upload_source_maps": true,
+  "routes": [
+    {
+      "pattern": "shakingheadai.org",
+      "custom_domain": true
+    }
+  ],
   "vars": {
     "BILLING_ENABLED": "0",
     "EMAIL_LOGIN_ENABLED": "0",

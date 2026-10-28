@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
@@ -37,3 +38,7 @@ jobs:
       - run: pnpm --filter @shipwords/jobs check
 
       - run: pnpm --filter ./templates/ai-site check
+
+      - run: node --test sites/shaking-head-ai/tests/*.test.ts
+
+      - run: pnpm --filter ./sites/shaking-head-ai check

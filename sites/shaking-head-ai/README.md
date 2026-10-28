@@ -13,6 +13,7 @@
 - Cloudflare: `explusyqt@gmail.com`, account `80797548dfa9244ddcd458f0375525ae`; Worker `shaking-head-ai`, D1 `59084a06-f04d-4938-acb1-762c7b0f5437`, R2 `shaking-head-ai-outputs`.
 - Domain zone: `25f9d44a020d2bfab2d7d93c2147089c`, Free Website; registrar NS cutover must follow removal and expiry of the old DNSSEC DS.
 - Google OAuth: project `shakingheadai-20261029`, External / Production, only OpenID, email and profile. Local real Google sign-in passed; production-domain sign-in must be checked after deployment.
+- GA4: account `398760142`, property `561185914`, web stream `16223856936`, measurement `G-46QFS3MYRJ`; production collection must be verified independently of property creation.
 
 ## Implementation
 

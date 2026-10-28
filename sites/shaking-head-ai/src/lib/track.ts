@@ -1,4 +1,5 @@
-// Rybbit custom events. Generic funnel (in order); each site adds or drops steps as needed:
+// Site funnel events. GA4 receives them when its configured gtag is present; Rybbit keeps its queue.
+// Generic funnel (in order); each site adds or drops steps as needed:
 //   generate_click → sign_in_open → sign_in → pricing_open → checkout_start → payment_confirmed
 //   → generate_started → result_ready → result_download
 // Simple clicks use the data-rybbit-event attribute and are collected by the Rybbit script; this file only handles events that carry state.
@@ -6,6 +7,7 @@
 
 type Props = Record<string, string | number | boolean>;
 type Rybbit = { event(name: string, props?: Props): void; identify?(userId: string): void };
+type GoogleAnalytics = { gtag?(command: 'event', name: string, props?: Props): void };
 
 const queue: (() => void)[] = [];
 let waiting = false;
@@ -36,6 +38,7 @@ function later(send: () => void) {
 
 export function track(name: string, props?: Props) {
   if (typeof window === 'undefined') return;
+  (window as GoogleAnalytics).gtag?.('event', name, props);
   later(() => rybbit()?.event(name, props));
 }
 

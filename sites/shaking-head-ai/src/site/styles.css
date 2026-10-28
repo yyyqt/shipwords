@@ -1036,6 +1036,7 @@ h2 {
   object-fit: cover;
 }
 .dialog {
+  margin: auto;
   color: var(--color-ink);
   background: var(--color-surface);
   width: min(420px, calc(100vw - 32px));

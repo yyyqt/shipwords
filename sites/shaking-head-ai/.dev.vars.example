@@ -1,0 +1,16 @@
+# Store real values outside the repository in ~/.config/shipwords/shaking-head-ai.dev.vars.
+APP_URL=http://127.0.0.1:6273
+BETTER_AUTH_SECRET=replace-with-at-least-32-random-characters
+GUEST_COOKIE_SECRET=replace-with-at-least-32-random-characters
+APIMART_API_KEY=
+# Development without paid upstream calls. Empty only for explicitly authorized real generations.
+UPSTREAM_MOCK=1
+# Test-mode placeholders only. Real payment setup requires owner confirmation.
+STRIPE_SECRET_KEY=sk_test_local_preview_only
+STRIPE_WEBHOOK_SECRET=whsec_local_preview_only
+BILLING_ENABLED=0
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+RECAPTCHA_SITE_KEY=
+RECAPTCHA_PROJECT_ID=
+RECAPTCHA_API_KEY=

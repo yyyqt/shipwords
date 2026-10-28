@@ -1,6 +1,7 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloudflare:workers';
 import { createDb } from '@shipwords/core/db/client';
 import type { SiteConfig } from '@shipwords/core/site';
+import { APIMartAdapter } from './apimart';
 import { containerComposer } from './compose';
 import { markFailed } from './lifecycle';
 import { MockAdapter, mockComposer, mockMode } from './mock';
@@ -15,6 +16,7 @@ export interface JobsEnv {
   OUTPUTS: R2Bucket;
   GENERATION_WORKFLOW: Workflow<{ jobId: string }>;
   YIR_API_KEY: string;
+  APIMART_API_KEY?: string;
   YIR_BASE_URL?: string;
   /** Yir referral code included for people deploying this starter; optional for your own sites. */
   YIR_REFERRAL_CODE?: string;
@@ -39,8 +41,12 @@ export function createAdapters(env: JobsEnv): Record<string, UpstreamAdapter> {
       'UPSTREAM_MOCK is set but the mock is inactive (live payment key or non-local APP_URL); refusing to call the upstream',
     );
   if (mock)
-    return { yir: new MockAdapter(mock, undefined, `${env.APP_URL!.replace(/\/$/, '')}/mock-output.png`) };
+    return {
+      yir: new MockAdapter(mock, undefined, `${env.APP_URL!.replace(/\/$/, '')}/mock-output.png`),
+      apimart: new MockAdapter(mock, undefined, `${env.APP_URL!.replace(/\/$/, '')}/mock-output.png`),
+    };
   return {
+    apimart: new APIMartAdapter({ apiKey: env.APIMART_API_KEY ?? '', bucket: env.OUTPUTS }),
     yir: new YirAdapter({
       apiKey: env.YIR_API_KEY,
       ...(env.YIR_BASE_URL ? { baseURL: env.YIR_BASE_URL } : {}),

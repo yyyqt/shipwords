@@ -6,7 +6,7 @@ export interface ModelDefinition {
   id: string;
   name: string;
   kind: 'image' | 'video';
-  upstream: 'yir';
+  upstream: 'yir' | 'apimart';
   upstreamModel: string;
   /** Credits charged per job; pass a function for parameter-based pricing. */
   credits: number | ((parameters: Record<string, unknown>) => number);

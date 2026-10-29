@@ -134,7 +134,7 @@ export function PhoneHandoff({
     async function tick() {
       if (!live()) return;
       if (Date.now() >= (current.current?.expiresAt ?? 0)) {
-        close('This code expired. Open a new code.');
+        close('This code expired. Get a new code on your computer.');
         return;
       }
       try {
@@ -144,7 +144,7 @@ export function PhoneHandoff({
         });
         if (!live()) return;
         if (response.status === 404 || response.status === 410) {
-          close('This code expired. Open a new code.');
+          close('This code expired. Get a new code on your computer.');
           return;
         }
         if (!response.ok) throw new Error('Connection interrupted. Reconnecting…');
@@ -155,7 +155,7 @@ export function PhoneHandoff({
           data.expiresAt <= Date.now() ||
           Date.now() >= (current.current?.expiresAt ?? 0)
         ) {
-          close('This code expired. Open a new code.');
+          close('This code expired. Get a new code on your computer.');
           return;
         }
         if (photoAtOpen.current !== latestPhoto.current) {
@@ -203,7 +203,7 @@ export function PhoneHandoff({
           ) : (
             <p role="status">Opening…</p>
           )}
-          <p>Scan with your phone to upload one photo.</p>
+          <p>Scan to send one animal photo. Valid for 30 minutes.</p>
           {notice && (
             <p className="handoff-notice" role="status">
               {notice}
@@ -364,7 +364,7 @@ export function PhoneUploadPage({ token }: { token: string }) {
       <h1>Upload an animal photo.</h1>
       {preview && <img className="phone-preview" src={preview} alt="Your selected animal" />}
       {status === 'expired' ? (
-        <p role="status">This code expired or was closed. Open a new code on your computer.</p>
+        <p role="status">This code expired or was closed. Get a new code on your computer.</p>
       ) : status === 'full' ? (
         <p role="status">This code already received a photo. Return to your computer.</p>
       ) : status === 'sent' ? (

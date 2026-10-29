@@ -120,7 +120,6 @@ export function SignInDialog() {
         ×
       </button>
       <h2 id="sign-in-title">{m.common_sign_in_dialog_title()}</h2>
-      <p className="muted">{m.common_sign_in_dialog_note()}</p>
       {open && <SignInPanel onDone={done} />}
     </dialog>
   );

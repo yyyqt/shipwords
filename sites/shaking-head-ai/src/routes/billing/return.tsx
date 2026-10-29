@@ -4,6 +4,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { track } from '~/lib/track';
 import { m } from '~/paraglide/messages.js';
+import { SUPPORT_EMAIL } from '~/site/legal';
 
 /** How long to wait after credits arrive before redirecting back, long enough to read the balance. */
 const CONTINUE_DELAY_MS = 3500;
@@ -68,7 +69,7 @@ function ReturnPage() {
             <h1 id="pay-return-title">{m.common_billing_pending_title()}</h1>
             <p>
               {m.common_billing_pending_before()} <a href="/account">{m.common_billing_pending_link()}</a>{' '}
-              {m.common_billing_pending_after()}
+              {m.common_billing_pending_after()} <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
             </p>
             <a className="button primary" href={next}>
               {m.common_billing_continue()}

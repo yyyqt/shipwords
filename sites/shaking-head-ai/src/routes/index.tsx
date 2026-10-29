@@ -204,7 +204,7 @@ function Home() {
     try {
       await cancel(id);
     } catch {
-      setCancelError('Could not cancel this video. Please try again; you can still find it in your account.');
+      setCancelError('Could not confirm cancellation. Check your account before trying again.');
     }
   }
 
@@ -248,7 +248,7 @@ function Home() {
         <div className="creator-layout">
           <form className="upload-card" onSubmit={submit}>
             <div className="card-heading">
-              <h2>Your photo goes here.</h2>
+              <h2>Upload an animal photo.</h2>
             </div>
             <fieldset
               aria-label="Photo upload"
@@ -291,7 +291,6 @@ function Home() {
                     <Icon name="image" />
                     <i>+</i>
                   </span>
-                  <strong>Got an animal photo?</strong>
                   <span>One animal, looking at the camera.</span>
                 </div>
               )}
@@ -624,9 +623,6 @@ function Home() {
           </p>
         </div>
         <Plans />
-        <p className="pricing-specs">
-          7.36 or 15 seconds · 720p vertical MP4 · Original trend sound · No site watermark
-        </p>
       </section>
       <section className="faq-section" id="faq">
         <div>

@@ -12,7 +12,7 @@ export const FAQS = [
   {
     question: 'Is it free? How much does one video cost?',
     answer:
-      'Sign-in and purchased credits are required, including when you generate with a sample photo. The smallest purchase is $8.80 for 20 credits: two 7.36-second videos or one 15-second video. A 7.36-second video uses 10 credits; a 15-second video uses 20 credits. Buy 20 credits for $8.80, 60 credits for $18.80, or 100 credits for $28.80. These cover 2, 6 or 10 short videos, or 1, 3 or 5 long videos. You can mix both durations in the same pack. All packs are one-time purchases with no subscription, and purchased credits do not expire.',
+      'Generation requires a signed-in account and paid credits, including when using a sample photo. A 7.36-second video costs 10 credits; a 15-second video costs 20. Packs start at $8.80 for 20 credits. You can mix both lengths in one pack. Purchased credits never expire, and there is no subscription.',
   },
   {
     question: 'What video will I get?',
@@ -20,9 +20,9 @@ export const FAQS = [
       'Choose a 7.36- or 15-second vertical 9:16 video at 720p, delivered as an MP4, with the original trend sound. We do not add a site watermark. AI can vary between runs, so the exact expressions, movement and timing are not guaranteed to match a reference clip.',
   },
   {
-    question: 'Does the video include the original TikTok song?',
+    question: 'Is sound included?',
     answer:
-      'Yes. The original audio excerpt is added after generation at its original speed, without AI recreation. The 7.36-second option plays it once; the 15-second option loops it to fill the video. A fixed calf video guides the head-shake motion alongside your photo; AI motion and beat alignment can still vary.',
+      'Yes. Both options include the original trend sound. The 7.36-second video plays it once; the 15-second video loops it.',
   },
   {
     question: 'Are the videos shown here made with Shaking Head AI?',
@@ -32,7 +32,7 @@ export const FAQS = [
   {
     question: 'How long does generation take? Can I close the tab?',
     answer:
-      'Generation can take several minutes, depending on provider demand. You can close this page and return to the same account to check progress and download your video. Please check your account rather than wait for an email. If a job is still queued or generating after 35 minutes, refresh your account; contact support with the job ID if it remains unresolved.',
+      'Generation can take several minutes, depending on provider demand. You can close this page and return to the same account to check progress and download your video. If a job is still queued or generating after 35 minutes, refresh your account; contact support with the job ID if it remains unresolved.',
   },
   {
     question: 'What happens if generation fails?',

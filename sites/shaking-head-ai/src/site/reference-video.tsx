@@ -1,6 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
 
 export function ReferenceVideo({ id, creator, title }: { id: string; creator: string; title: string }) {
+  return (
+    <ExampleVideo
+      src={`/media/trend-${id}.mp4`}
+      poster={`/media/tiktok-${id}.jpg`}
+      title={title}
+      label={`${title}, original TikTok reference by @${creator}`}
+    />
+  );
+}
+
+export function ExampleVideo({
+  src,
+  poster,
+  title,
+  label,
+}: {
+  src: string;
+  poster: string;
+  title: string;
+  label: string;
+}) {
   const video = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -34,18 +55,18 @@ export function ReferenceVideo({ id, creator, title }: { id: string; creator: st
   }
   return (
     <div className={`video-frame clean-video ${playing ? 'is-playing' : ''}`}>
-      {/* biome-ignore lint/a11y/useMediaCaption: reference clips contain music and burned-in meme text, with no speech transcript. */}
+      {/* biome-ignore lint/a11y/useMediaCaption: these clips use original trend music with no spoken dialogue to transcribe. */}
       <video
         ref={video}
-        src={`/media/trend-${id}.mp4`}
-        poster={`/media/tiktok-${id}.jpg`}
+        src={src}
+        poster={poster}
         muted
         loop
         playsInline
         preload="metadata"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
-        aria-label={`${title}, original TikTok reference by @${creator}`}
+        aria-label={label}
       />
       <button
         type="button"
@@ -75,13 +96,7 @@ export function ReferenceVideo({ id, creator, title }: { id: string; creator: st
           aria-hidden="true"
         >
           <path d="m11 4-6 5H2v6h3l6 5V4Z" />
-          {muted ? (
-            <path d="m16 9 6 6m0-6-6 6" />
-          ) : (
-            <>
-              <path d="M15 8a6 6 0 0 1 0 8M18 4a11 11 0 0 1 0 16" />
-            </>
-          )}
+          {muted ? <path d="m16 9 6 6m0-6-6 6" /> : <path d="M15 8a6 6 0 0 1 0 8M18 4a11 11 0 0 1 0 16" />}
         </svg>
       </button>
     </div>

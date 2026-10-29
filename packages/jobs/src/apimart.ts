@@ -31,9 +31,41 @@ export function buildAPIMartRequest(input: SubmitInput) {
     !['9:16', '16:9', '1:1', '4:3', '3:4'].includes(String(size))
   )
     throw new UpstreamError('invalid_parameters', 'Unsupported APIMart output specification.', false);
-  if (input.references.length !== 1 || input.references[0]?.role !== 'first_frame')
-    throw new UpstreamError('invalid_references', 'APIMart requires one first-frame image.', false);
-  const estimate = MINI_RATES[resolution] * duration;
+  const referenceVideo = p.reference_video_url;
+  const referenceSeconds = p.reference_video_seconds;
+  const referenceMode = referenceVideo !== undefined || referenceSeconds !== undefined;
+  if (
+    input.references.length !== 1 ||
+    input.references[0]?.role !== (referenceMode ? 'reference_image' : 'first_frame')
+  )
+    throw new UpstreamError(
+      'invalid_references',
+      'APIMart requires one first-frame or reference image.',
+      false,
+    );
+  if (referenceMode) {
+    let url: URL;
+    try {
+      url = new URL(String(referenceVideo));
+    } catch {
+      throw new UpstreamError('invalid_references', 'Invalid reference video URL.', false);
+    }
+    if (
+      typeof referenceVideo !== 'string' ||
+      url.protocol !== 'https:' ||
+      url.username ||
+      url.password ||
+      !url.pathname.endsWith('.mp4') ||
+      typeof referenceSeconds !== 'number' ||
+      !Number.isFinite(referenceSeconds) ||
+      referenceSeconds <= 1.8 ||
+      referenceSeconds > 15
+    )
+      throw new UpstreamError('invalid_references', 'Invalid reference video specification.', false);
+  }
+  // Count input seconds too. Use the higher existing no-video rate as a conservative estimate.
+  const estimate =
+    MINI_RATES[resolution] * (duration + (referenceMode ? Math.ceil(referenceSeconds as number) : 0));
   if (input.maxCost && (!Number.isFinite(Number(input.maxCost)) || estimate > Number(input.maxCost)))
     throw new UpstreamError(
       'cost_limit',
@@ -48,6 +80,7 @@ export function buildAPIMartRequest(input: SubmitInput) {
     size,
     generate_audio: p.generate_audio !== false,
     nsfw_check: true,
+    ...(referenceMode ? { video_urls: [referenceVideo as string] } : {}),
   };
 }
 
@@ -143,7 +176,12 @@ export class APIMartAdapter implements UpstreamAdapter {
       data = await this.request('/videos/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, image_with_roles: [{ url: photoUrl, role: 'first_frame' }] }),
+        body: JSON.stringify({
+          ...payload,
+          ...(payload.video_urls
+            ? { image_urls: [photoUrl] }
+            : { image_with_roles: [{ url: photoUrl, role: 'first_frame' }] }),
+        }),
       });
     } catch (error) {
       // Keep the durable pending marker even on ambiguous network/server errors.

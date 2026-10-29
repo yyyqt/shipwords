@@ -6,11 +6,11 @@ import { authClient } from '~/lib/auth';
 import { useSafeGeneration } from '~/lib/safe-generation';
 import { track } from '~/lib/track';
 import { AccountLink } from '~/site/account';
-import { FAQS, TIKTOK_REFERENCES } from '~/site/content';
+import { FAQS, GENERATED_CAT_EXAMPLE, TIKTOK_REFERENCES } from '~/site/content';
 import { MAX_PHOTO_BYTES, PHOTO_TYPES, VIDEO_OPTIONS } from '~/site/generation';
 import { Icon } from '~/site/icons';
 import { Plans, PricingLink } from '~/site/pricing';
-import { ReferenceVideo } from '~/site/reference-video';
+import { ExampleVideo, ReferenceVideo } from '~/site/reference-video';
 import { openSignIn } from '~/site/sign-in';
 import site from '../../site.config';
 
@@ -134,7 +134,7 @@ function Home() {
     setUploading(true);
     try {
       const bitmap = await createImageBitmap(file);
-      // Seedance image-to-video follows the first frame's shape. Prepare a vertical frame before upload.
+      // Prepare a vertical reference portrait before upload.
       const canvas = new OffscreenCanvas(720, 1280);
       const context = canvas.getContext('2d');
       if (!context) throw new Error('Image preparation unavailable');
@@ -459,7 +459,7 @@ function Home() {
               ))}
             </div>
             <p className="reference-note">
-              Original TikTok clips, credited to their creators. These were not made on this site.{' '}
+              Original TikTok references, credited to their creators.{' '}
               <a href="https://www.tiktok.com/tag/shakingheadtrend" target="_blank" rel="noopener noreferrer">
                 See the trend ↗
               </a>
@@ -488,6 +488,42 @@ function Home() {
             </div>
           </section>
         )}
+      </section>
+      <section className="generated-example" id="generated-example" aria-labelledby="generated-example-title">
+        <h2 id="generated-example-title">One photo. That head shake.</h2>
+        <div className="photo-to-video">
+          <figure>
+            <button
+              type="button"
+              className="example-photo"
+              aria-label="Try this cat photo"
+              disabled={uploading}
+              onClick={() => {
+                void selectSample('generated-cat-input-v1');
+                document.getElementById('create')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <img
+                src={GENERATED_CAT_EXAMPLE.photo}
+                alt="Orange-and-white kitten sitting by a window"
+                width="720"
+                height="1082"
+                loading="lazy"
+              />
+            </button>
+            <figcaption>Your photo</figcaption>
+          </figure>
+          <Icon name="arrow" />
+          <figure>
+            <ExampleVideo
+              src={GENERATED_CAT_EXAMPLE.video}
+              poster={GENERATED_CAT_EXAMPLE.photo}
+              title={GENERATED_CAT_EXAMPLE.title}
+              label="Cat head-shake video generated with Shaking Head AI"
+            />
+            <figcaption>Generated video</figcaption>
+          </figure>
+        </div>
       </section>
       <section className="how-section" id="how-it-works">
         <div className="section-heading">

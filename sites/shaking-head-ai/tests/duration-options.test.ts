@@ -12,8 +12,24 @@ const accountId = 'duration-account';
 const requestId = '2e548a37-25eb-4a32-82a0-1c34f53f7c10';
 const otherRequestId = '7c937b36-382d-4d32-9ca4-515e9182d117';
 const modes = [
-  { id: 'shaking-head', seconds: 7.36, upstreamSeconds: 8, credits: 10, maxCost: '0.40' },
-  { id: 'shaking-head-15s', seconds: 15, upstreamSeconds: 15, credits: 20, maxCost: '0.75' },
+  {
+    id: 'shaking-head',
+    seconds: 7.36,
+    upstreamSeconds: 8,
+    credits: 10,
+    maxCost: '0.65',
+    referenceVideo: 'https://shakingheadai.org/media/trend-7698191391867899150.mp4',
+    referenceSeconds: 7.366667,
+  },
+  {
+    id: 'shaking-head-15s',
+    seconds: 15,
+    upstreamSeconds: 15,
+    credits: 20,
+    maxCost: '1.20',
+    referenceVideo: 'https://shakingheadai.org/media/cow-motion-loop15-v1.mp4',
+    referenceSeconds: 15,
+  },
 ] as const;
 
 test('the offered duration choices and server models agree on the two credit prices', () => {
@@ -39,13 +55,15 @@ for (const mode of modes) {
     assert.equal(model.upstreamModel, 'seedance-2.0-mini');
     assert.equal(model.guest, false);
     assert.equal(model.maxReferences, 1);
-    assert.equal(model.referenceRole, 'first_frame');
+    assert.equal(model.referenceRole, 'reference_image');
     assert.equal(model.maxCost, mode.maxCost);
     assert.deepEqual(sanitizeParameters(model, prepared.parameters), {
       duration: mode.upstreamSeconds,
       resolution: '720p',
       aspect_ratio: '9:16',
       generate_audio: false,
+      reference_video_url: mode.referenceVideo,
+      reference_video_seconds: mode.referenceSeconds,
     });
     assert.equal(creditsFor(model, sanitizeParameters(model, prepared.parameters)), mode.credits);
   });
@@ -62,6 +80,8 @@ for (const mode of modes) {
       costCredits: 0,
       maxCost: '999',
       generate_audio: true,
+      reference_video_url: 'https://outside.test/expensive.mp4',
+      reference_video_seconds: 999,
       parameters: {
         duration: 999,
         credits: 0,
@@ -70,6 +90,8 @@ for (const mode of modes) {
         resolution: '4K',
         aspect_ratio: '16:9',
         maxCost: '999',
+        reference_video_url: 'https://outside.test/expensive.mp4',
+        reference_video_seconds: 999,
       },
     });
     assert.ok(attack);
@@ -81,25 +103,31 @@ for (const mode of modes) {
       credits: 0,
       generate_audio: true,
       resolution: '4K',
+      reference_video_url: 'https://outside.test/expensive.mp4',
+      reference_video_seconds: 999,
     });
     assert.equal(parameters.duration, mode.upstreamSeconds);
     assert.equal(parameters.generate_audio, false);
     assert.equal(parameters.resolution, '720p');
     assert.equal(parameters.credits, undefined);
+    assert.equal(parameters.reference_video_url, mode.referenceVideo);
+    assert.equal(parameters.reference_video_seconds, mode.referenceSeconds);
     assert.equal(creditsFor(model, parameters), mode.credits);
   });
 }
 
-test('duration selection changes the fixed motion preset while unsupported modes are rejected', () => {
+test('duration selection chooses a server-owned motion reference without a fabricated text timeline', () => {
   const short = prepareGeneration({ modelId: modes[0].id, references: [photo] })!;
   const long = prepareGeneration({ modelId: modes[1].id, references: [photo] })!;
   assert.notEqual(short.prompt, long.prompt);
-  assert.match(short.prompt, /0.7–2.0 seconds/);
-  assert.match(short.prompt, /4.2–5.6 seconds/);
-  assert.match(short.prompt, /end at 7.36 seconds/);
-  assert.match(long.prompt, /8.08–9.38 seconds/);
-  assert.match(long.prompt, /11.78–13.08 seconds/);
-  assert.match(long.prompt, /original trend sound will be looped/i);
+  assert.match(short.prompt, /参考视频1/);
+  assert.match(short.prompt, /无声8秒.*截取至7.36秒/);
+  assert.match(long.prompt, /跟随15秒参考视频中的重复动作/);
+  assert.match(long.prompt, /无声15秒.*循环的原版音乐/);
+  for (const prepared of [short, long]) {
+    assert.doesNotMatch(prepared.prompt, /0\.7–2\.0|4\.2–5\.6|8\.08–9\.38/);
+    assert.deepEqual(prepared.parameters, {});
+  }
   for (const id of ['shaking-head-7s', 'shaking-head-30s', 'expensive-model', '__proto__', '', 15])
     assert.equal(prepareGeneration({ modelId: id, references: [photo] }), null);
 });

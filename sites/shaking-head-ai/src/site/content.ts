@@ -12,7 +12,7 @@ export const FAQS = [
   {
     question: 'Is it free? How much does one video cost?',
     answer:
-      'Video generation is paid. A 7.36-second video uses 10 credits; a 15-second video uses 20 credits. Buy 20 credits for $8.80, 60 credits for $18.80, or 100 credits for $28.80. These cover 2, 6 or 10 short videos, or 1, 3 or 5 long videos. You can mix both durations in the same pack. All packs are one-time purchases with no subscription, and purchased credits do not expire.',
+      'Sign-in and purchased credits are required, including when you generate with a sample photo. The smallest purchase is $8.80 for 20 credits: two 7.36-second videos or one 15-second video. A 7.36-second video uses 10 credits; a 15-second video uses 20 credits. Buy 20 credits for $8.80, 60 credits for $18.80, or 100 credits for $28.80. These cover 2, 6 or 10 short videos, or 1, 3 or 5 long videos. You can mix both durations in the same pack. All packs are one-time purchases with no subscription, and purchased credits do not expire.',
   },
   {
     question: 'What video will I get?',
@@ -27,22 +27,22 @@ export const FAQS = [
   {
     question: 'Are the videos shown here made with Shaking Head AI?',
     answer:
-      'The orange-and-white cat example was generated with our photo-and-motion-reference workflow and the original trend sound. The three credited TikTok clips are references from their original creators. Each new generation can vary.',
+      'The cat and person examples were generated with our photo-and-motion-reference workflow and the original trend sound. The person input is a fictional adult portrait created for this demo. The three credited TikTok clips are references from their original creators. Each new generation can vary.',
   },
   {
     question: 'How long does generation take? Can I close the tab?',
     answer:
-      'Generation can take several minutes, depending on provider demand. You can return to the same account to find recent jobs and results. When email delivery is available, we send a completion notice. There is no guaranteed completion time.',
+      'Generation can take several minutes, depending on provider demand. You can close this page and return to the same account to check progress and download your video. Please check your account rather than wait for an email. If a job is still queued or generating after 35 minutes, refresh your account; contact support with the job ID if it remains unresolved.',
   },
   {
     question: 'What happens if generation fails?',
     answer:
-      'A job marked failed or canceled returns its spent credits automatically. This is a credit refund, not an automatic refund to your card. For a payment refund or a problem with a completed video, contact support with your order or job ID; see the refund policy.',
+      'A job marked failed or canceled returns its spent credits automatically. This is a credit refund, not an automatic refund to your card. If a completed video cannot be played or downloaded, is missing its main subject, or has another material technical problem, contact support with the job ID for review. Normal AI variation does not trigger an automatic refund. Payment refunds are reviewed separately; see the refund policy.',
   },
   {
     question: 'Do I need an account? What happens to my photo?',
     answer:
-      'You need to sign in before purchasing credits or generating. Uploads and videos are stored to process your job and let you download it; unlisted file links should be treated as shareable links. Do not upload sensitive photos. You can request account and file deletion through support. Read the privacy policy for details.',
+      'You need to sign in before purchasing credits or generating. Uploads and videos are stored to process your job and let you download it; unlisted file links should be treated as shareable links. Do not upload sensitive photos. For deletion, email support@shakingheadai.org from your account email with the job IDs or file links, and say whether you want individual files or the whole account removed. We verify ownership before removal; payment and security records may need to be retained. Read the privacy policy for details.',
   },
 ];
 
@@ -62,3 +62,18 @@ export const GENERATED_CAT_EXAMPLE = {
   video: '/media/generated-cat-reference-v1.mp4',
   title: 'The generated cat head shake',
 };
+
+export const GENERATED_EXAMPLES = [
+  {
+    id: 'cat',
+    label: 'Cat',
+    ...GENERATED_CAT_EXAMPLE,
+  },
+  {
+    id: 'person',
+    label: 'Person',
+    photo: '/media/generated-person-input-v1.jpg',
+    video: '/media/generated-person-reference-v1.mp4',
+    title: 'The generated person head shake',
+  },
+];

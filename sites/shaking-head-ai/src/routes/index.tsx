@@ -6,7 +6,7 @@ import { authClient } from '~/lib/auth';
 import { useSafeGeneration } from '~/lib/safe-generation';
 import { track } from '~/lib/track';
 import { AccountLink } from '~/site/account';
-import { FAQS, GENERATED_CAT_EXAMPLE, TIKTOK_REFERENCES } from '~/site/content';
+import { FAQS, GENERATED_EXAMPLES, TIKTOK_REFERENCES } from '~/site/content';
 import { MAX_PHOTO_BYTES, PHOTO_TYPES, VIDEO_OPTIONS } from '~/site/generation';
 import { Icon } from '~/site/icons';
 import { PhoneHandoff } from '~/site/phone-upload';
@@ -66,6 +66,8 @@ function Home() {
   );
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [selectedId, setSelectedId] = useState<VideoId>('shaking-head');
+  const [exampleId, setExampleId] = useState<string>(GENERATED_EXAMPLES[0]?.id ?? '');
+  const example = GENERATED_EXAMPLES.find((item) => item.id === exampleId) ?? GENERATED_EXAMPLES[0];
   const selected = VIDEO_OPTIONS.find((option) => option.id === selectedId) ?? VIDEO_OPTIONS[0];
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -162,9 +164,11 @@ function Home() {
   }
   async function selectSample(name: string) {
     try {
-      const response = await fetch(`/media/${name}.jpg`);
+      const filename = /\.(jpe?g|png|webp)$/i.test(name) ? name : `${name}.jpg`;
+      const response = await fetch(`/media/${filename}`);
       if (!response.ok) throw new Error('Photo unavailable');
-      await upload(new File([await response.blob()], `${name}.jpg`, { type: 'image/jpeg' }));
+      const blob = await response.blob();
+      await upload(new File([blob], filename, { type: blob.type || 'image/jpeg' }));
     } catch {
       setUploadError('This sample photo is unavailable. Please upload your own photo.');
     }
@@ -338,6 +342,7 @@ function Home() {
                 </button>
               ))}
             </div>
+            <p className="sample-cost-note">Generating with sample photos uses credits too.</p>
             <div className="duration-options" role="radiogroup" aria-label="Video duration">
               {VIDEO_OPTIONS.map((option) => (
                 <label key={option.id}>
@@ -391,10 +396,8 @@ function Home() {
               )}
             </button>
             <p className="credit-note">
-              {selected.credits} credits per video ·{' '}
-              <PricingLink source="generator">
-                from ${selected.credits === 10 ? '2.88' : '5.76'} with a pack
-              </PricingLink>
+              <PricingLink source="generator">Credit packs from $8.80</PricingLink>
+              {!session.data && <> · Sign in to generate</>}
             </p>
             {!config.generationReady && (
               <p className="notice">Generation is opening soon. You can explore the trend below.</p>
@@ -490,42 +493,85 @@ function Home() {
           </section>
         )}
       </section>
-      <section className="generated-example" id="generated-example" aria-labelledby="generated-example-title">
-        <h2 id="generated-example-title">One photo. That head shake.</h2>
-        <div className="photo-to-video">
-          <figure>
-            <button
-              type="button"
-              className="example-photo"
-              aria-label="Try this cat photo"
-              disabled={uploading}
-              onClick={() => {
-                void selectSample('generated-cat-input-v1');
-                document.getElementById('create')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              <img
-                src={GENERATED_CAT_EXAMPLE.photo}
-                alt="Orange-and-white kitten sitting by a window"
-                width="720"
-                height="1082"
-                loading="lazy"
+      {example && (
+        <section
+          className="generated-example"
+          id="generated-example"
+          aria-labelledby="generated-example-title"
+        >
+          <div className="example-heading">
+            <h2 id="generated-example-title">One photo. That head shake.</h2>
+            {GENERATED_EXAMPLES.length > 1 && (
+              <div className="example-tabs" role="tablist" aria-label="Generated examples">
+                {GENERATED_EXAMPLES.map((item, index) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="tab"
+                    id={`example-tab-${item.id}`}
+                    aria-selected={example.id === item.id}
+                    aria-controls="example-panel"
+                    tabIndex={example.id === item.id ? 0 : -1}
+                    onClick={() => setExampleId(item.id)}
+                    onKeyDown={(event) => {
+                      let next = index;
+                      if (event.key === 'ArrowRight') next = (index + 1) % GENERATED_EXAMPLES.length;
+                      else if (event.key === 'ArrowLeft')
+                        next = (index - 1 + GENERATED_EXAMPLES.length) % GENERATED_EXAMPLES.length;
+                      else if (event.key === 'Home') next = 0;
+                      else if (event.key === 'End') next = GENERATED_EXAMPLES.length - 1;
+                      else return;
+                      event.preventDefault();
+                      const target = GENERATED_EXAMPLES[next];
+                      if (target) {
+                        setExampleId(target.id);
+                        document.getElementById(`example-tab-${target.id}`)?.focus();
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: the tabpanel role and its accessible name are enabled together only when tabs exist. */}
+          <div
+            className="photo-to-video"
+            id="example-panel"
+            role={GENERATED_EXAMPLES.length > 1 ? 'tabpanel' : undefined}
+            aria-labelledby={GENERATED_EXAMPLES.length > 1 ? `example-tab-${example.id}` : undefined}
+          >
+            <figure>
+              <button
+                type="button"
+                className="example-photo"
+                aria-label={`Try this ${example.label.toLowerCase()} photo`}
+                disabled={uploading}
+                onClick={() => {
+                  const filename = new URL(example.photo, location.origin).pathname.split('/').pop();
+                  if (filename) void selectSample(filename);
+                  document.getElementById('create')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <img src={example.photo} alt={`${example.label} before the head shake`} loading="lazy" />
+              </button>
+              <figcaption>Your photo</figcaption>
+            </figure>
+            <Icon name="arrow" />
+            <figure>
+              <ExampleVideo
+                key={example.id}
+                src={example.video}
+                poster={example.photo}
+                title={example.title}
+                label={`${example.label} head-shake video generated with Shaking Head AI`}
               />
-            </button>
-            <figcaption>Your photo</figcaption>
-          </figure>
-          <Icon name="arrow" />
-          <figure>
-            <ExampleVideo
-              src={GENERATED_CAT_EXAMPLE.video}
-              poster={GENERATED_CAT_EXAMPLE.photo}
-              title={GENERATED_CAT_EXAMPLE.title}
-              label="Cat head-shake video generated with Shaking Head AI"
-            />
-            <figcaption>Generated video</figcaption>
-          </figure>
-        </div>
-      </section>
+              <figcaption>Generated video</figcaption>
+            </figure>
+          </div>
+        </section>
+      )}
       <section className="how-section" id="how-it-works">
         <div className="section-heading">
           <h2>

@@ -24,7 +24,7 @@ Direct APIMart support lives in `packages/jobs/src/apimart.ts`. The adapter copi
 
 ## Local development
 
-Use Node 24 and pnpm 10.30.1. Local secrets live outside the repository at `~/.config/shipwords/shaking-head-ai.dev.vars`, linked as `.dev.vars`. A real APIMart key was made available by the owner for one paid test. Do not copy it into documentation, source or test fixtures.
+Use Node 24 and pnpm 10.30.1. Local secrets live outside the repository at `~/.config/shipwords/shaking-head-ai.dev.vars`, linked as `.dev.vars`. Real APIMart credentials are owner-managed and each new paid test requires its own authorization. Do not copy credentials into documentation, source or test fixtures.
 
 ```sh
 pnpm install
@@ -59,7 +59,7 @@ Sample input photos are from Unsplash and are not presented as generated results
 - Cat: `photo-1514888286974-6c03e2ca1dba`
 - Selfie: `photo-1506794778202-cad84cf45f1d`
 
-The approved generated kitten example is `public/media/generated-cat-reference-v1.mp4` (APIMart task `task_01M62NCHYPMCWZ4S51N2QG2P40`, actual cost $0.3564), using the full-body Pexels photo https://images.pexels.com/photos/2071873/pexels-photo-2071873.jpeg and the calf motion reference. It is an actual generated output, distinct from the three credited TikTok clips. The short preset uses that same calf video; the long preset uses its 15-second loop `cow-motion-loop15-v1.mp4`. No new paid render was made for this integration. The generic subject wording supports other pets or adult selfies; it does not guarantee identical expressions or timing.
+The approved generated kitten example is `public/media/generated-cat-reference-v1.mp4` (APIMart task `task_01M62NCHYPMCWZ4S51N2QG2P40`, actual cost $0.3564), using the full-body Pexels photo https://images.pexels.com/photos/2071873/pexels-photo-2071873.jpeg and the calf motion reference. It is an actual generated output, distinct from the three credited TikTok clips. The short preset uses that same calf video; the long preset uses its 15-second loop `cow-motion-loop15-v1.mp4`. The generic subject wording supports other pets or adult selfies; it does not guarantee identical expressions or timing.
 
 The favicon, smiley graphic and social card are original code-authored graphics.
 
@@ -94,3 +94,10 @@ The 15-second option uses `public/media/original-trend-loop15-v1.m4a`, uploaded 
 ## Phone photo handoff
 
 Adapted from this repository's `tinydeskai-example` QR upload feature. Desktop opens a 30-minute random pairing code; the phone uses the existing quota-limited upload endpoint, then registers one existing upload path. The desktop receives that photo without creating a job or spending credits. QR rendering stays local through `uqr`; no QR service receives the link. Pairing creation is limited to 30 per IP per hour. Registration is atomic and idempotent for the same photo; a second photo cannot overwrite it. Closing or consuming the pairing removes its internal R2 records; expired pairings are rejected and removed on access. Ordinary upload/file retention rules still apply. Phone pages are noindex, suppress analytics and authentication prompts, and use no-referrer. Pairing links are temporary shareable capabilities, not account-login links.
+
+
+## Customer-facing purchase and result handling
+
+The generator states the minimum pack purchase ($8.80 for 20 credits), with sign-in required and sample-photo generations charged at the same 10/20-credit rates. The account is the supported place to check progress and retrieve results. Completion-email code and bindings exist, but production sending-domain readiness and real delivery have not been verified; public copy does not promise email delivery. Tasks still in progress after 35 minutes can be refreshed through account reads, which invoke the existing stale-job recovery window. Failed or canceled tasks return credits; card refunds and material problems with completed results are reviewed through support. File/account deletion requests require ownership verification and do not promise recall of caches, provider-held material or required accounting/security records.
+
+The person example uses `public/media/generated-person-input-v1.jpg`, a fictional adult woman of about 25 created with imagegen, and `generated-person-reference-v1.mp4`, a real APIMart reference-video render (task `task_01M62RHA0R9PQ7W0YSEVG1RZHY`, actual cost $0.3564) with the pinned original sound added afterward. Only this one new video was authorized; the planned dog sample was canceled before submission. Both public examples are real outputs, not customer testimonials or simulations.

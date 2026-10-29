@@ -345,7 +345,7 @@ h1 span::after {
   display: flex;
   align-items: center;
   gap: 7px;
-  margin-block: 15px 20px;
+  margin-block: 15px 8px;
 }
 .sample-photos span {
   font-size: 11px;
@@ -2023,5 +2023,48 @@ fieldset.drop-zone {
 @media (pointer: coarse) {
   .phone-handoff {
     display: none;
+  }
+}
+
+.sample-cost-note {
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--color-muted);
+  margin-bottom: 18px;
+}
+.example-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 24px;
+}
+.example-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.example-tabs button {
+  border: 1.5px solid #20203555;
+  border-radius: 20px;
+  padding: 8px 17px;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.example-tabs button[aria-selected="true"] {
+  border-color: var(--color-ink);
+  background: #ffdc45;
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+@media (max-width: 800px) {
+  .example-heading {
+    display: block;
+  }
+  .example-tabs {
+    margin: -7px 0 28px;
   }
 }

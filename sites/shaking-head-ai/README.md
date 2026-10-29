@@ -3,7 +3,7 @@
 - Domain: https://shakingheadai.org
 - Target: shaking head ai, shaking head AI video, shaking head trend
 - Status: first release; paid generation quality and payment settlement require separate acceptance
-- Product: one photo of an adult or a pet → a 7.36-second or 15-second 720p 9:16 MP4 with the original trend sound
+- Product: one animal photo → a 7.36-second or 15-second 720p 9:16 MP4 with the original trend sound
 - Model: APIMart `seedance-2.0-mini`, photo identity plus a fixed calf motion-reference video
 - Packs: $8.80 / 20 credits; $18.80 / 60 credits; $28.80 / 100 credits. Enough for 2/6/10 short videos or 1/3/5 long videos.
 - A 7.36-second video uses 10 credits; a 15-second video uses 20 credits. Packs can mix both lengths. No subscription or signup bonus. Purchased credits do not expire.
@@ -57,9 +57,8 @@ Sample input photos are from Unsplash and are not presented as generated results
 
 - Dog: `photo-1552053831-71594a27632d`
 - Cat: `photo-1514888286974-6c03e2ca1dba`
-- Selfie: `photo-1506794778202-cad84cf45f1d`
 
-The approved generated kitten example is `public/media/generated-cat-reference-v1.mp4` (APIMart task `task_01M62NCHYPMCWZ4S51N2QG2P40`, actual cost $0.3564), using the full-body Pexels photo https://images.pexels.com/photos/2071873/pexels-photo-2071873.jpeg and the calf motion reference. It is an actual generated output, distinct from the three credited TikTok clips. The short preset uses that same calf video; the long preset uses its 15-second loop `cow-motion-loop15-v1.mp4`. The generic subject wording supports other pets or adult selfies; it does not guarantee identical expressions or timing.
+The approved generated kitten example is `public/media/generated-cat-reference-v1.mp4` (APIMart task `task_01M62NCHYPMCWZ4S51N2QG2P40`, actual cost $0.3564), using the full-body Pexels photo https://images.pexels.com/photos/2071873/pexels-photo-2071873.jpeg and the calf motion reference. It is an actual generated output, distinct from the three credited TikTok clips. The short preset uses that same calf video; the long preset uses its 15-second loop `cow-motion-loop15-v1.mp4`. The preset is limited to animal subjects; it does not guarantee identical expressions or timing.
 
 The favicon, smiley graphic and social card are original code-authored graphics.
 
@@ -100,4 +99,5 @@ Adapted from this repository's `tinydeskai-example` QR upload feature. Desktop o
 
 The generator states the minimum pack purchase ($8.80 for 20 credits), with sign-in required and sample-photo generations charged at the same 10/20-credit rates. The account is the supported place to check progress and retrieve results. Completion-email code and bindings exist, but production sending-domain readiness and real delivery have not been verified; public copy does not promise email delivery. Tasks still in progress after 35 minutes can be refreshed through account reads, which invoke the existing stale-job recovery window. Failed or canceled tasks return credits; card refunds and material problems with completed results are reviewed through support. File/account deletion requests require ownership verification and do not promise recall of caches, provider-held material or required accounting/security records.
 
-The person example uses `public/media/generated-person-input-v1.jpg`, a fictional adult woman of about 25 created with imagegen, and `generated-person-reference-v1.mp4`, a real APIMart reference-video render (task `task_01M62RHA0R9PQ7W0YSEVG1RZHY`, actual cost $0.3564) with the pinned original sound added afterward. Only this one new video was authorized; the planned dog sample was canceled before submission. Both public examples are real outputs, not customer testimonials or simulations.
+
+The service is now positioned for animals only. Human example media and the selfie sample have been removed from public assets; homepage, metadata, FAQ, phone-upload copy and the server-owned prompt use animal subjects. This is product scope and prompt guidance, not a claim of automatic face classification before upload.

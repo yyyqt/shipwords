@@ -361,8 +361,8 @@ export function PhoneUploadPage({ token }: { token: string }) {
       <a className="phone-brand" href="/">
         Shaking Head AI
       </a>
-      <h1>Upload your photo.</h1>
-      {preview && <img className="phone-preview" src={preview} alt="Your selected subject" />}
+      <h1>Upload an animal photo.</h1>
+      {preview && <img className="phone-preview" src={preview} alt="Your selected animal" />}
       {status === 'expired' ? (
         <p role="status">This code expired or was closed. Open a new code on your computer.</p>
       ) : status === 'full' ? (

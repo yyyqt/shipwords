@@ -2,12 +2,12 @@ export const FAQS = [
   {
     question: 'What is Shaking Head AI?',
     answer:
-      'Shaking Head AI turns one photo of yourself or your pet into a 7.36- or 15-second head-shaking reaction video. The subject closes its eyes in a smug grin, shakes its head from side to side, then opens its eyes in a surprised stare. No prompt or video editing is needed.',
+      'Shaking Head AI turns one animal photo into a 7.36- or 15-second head-shaking reaction video. The subject closes its eyes in a smug grin, shakes its head from side to side, then opens its eyes in a surprised stare. No prompt or video editing is needed.',
   },
   {
-    question: 'Can I use a photo of my cat, dog or myself?',
+    question: 'Can I use a photo of my cat, dog or another animal?',
     answer:
-      'Yes. Use one clear, front-facing photo of one pet or consenting adult, with both eyes visible. JPG, PNG and WebP are supported, up to 10 MB. Close-ups with even lighting work best. The photo is center-cropped to a vertical frame; keep the face near the middle. HEIC files need to be converted to JPG first.',
+      'Yes. Use one clear, front-facing photo of one animal, with both eyes visible. JPG, PNG and WebP are supported, up to 10 MB. Close-ups with even lighting work best. The photo is center-cropped to a vertical frame; keep the face near the middle. HEIC files need to be converted to JPG first.',
   },
   {
     question: 'Is it free? How much does one video cost?',
@@ -27,7 +27,7 @@ export const FAQS = [
   {
     question: 'Are the videos shown here made with Shaking Head AI?',
     answer:
-      'The cat and person examples were generated with our photo-and-motion-reference workflow and the original trend sound. The person input is a fictional adult portrait created for this demo. The three credited TikTok clips are references from their original creators. Each new generation can vary.',
+      'The cat example was generated with our photo-and-motion-reference workflow and the original trend sound. The three credited TikTok clips are references from their original creators. Each new generation can vary.',
   },
   {
     question: 'How long does generation take? Can I close the tab?',
@@ -68,12 +68,5 @@ export const GENERATED_EXAMPLES = [
     id: 'cat',
     label: 'Cat',
     ...GENERATED_CAT_EXAMPLE,
-  },
-  {
-    id: 'person',
-    label: 'Person',
-    photo: '/media/generated-person-input-v1.jpg',
-    video: '/media/generated-person-reference-v1.mp4',
-    title: 'The generated person head shake',
   },
 ];

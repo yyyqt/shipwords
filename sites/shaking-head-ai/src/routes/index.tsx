@@ -19,9 +19,9 @@ import site from '../../site.config';
 export const Route = createFileRoute('/')({
   head: () =>
     pageHead(site, {
-      title: 'Shaking Head AI Video Generator — Your Photo, the Viral Head Shake',
+      title: 'Shaking Head AI Video Generator — Pets and Animals',
       description:
-        'Make a shaking head AI video from one pet photo or selfie. Choose a 7.36- or 15-second, 720p vertical MP4 with the original trend sound. One-time packs from $8.80. No subscription.',
+        'Make a shaking head AI video from one animal photo. Choose a 7.36- or 15-second, 720p vertical MP4 with the original trend sound. One-time packs from $8.80. No subscription.',
       path: '/',
       image: `${site.url}/og-duration-options.png`,
       jsonLd: [
@@ -226,8 +226,8 @@ function Home() {
           </div>
           <div className="hero-intro">
             <p>
-              Your selfie. Your pet. That smug little shake. <br />
-              Turn one photo into the reaction everyone gets.
+              Your pet. That smug little shake. <br />
+              Turn one animal photo into the reaction everyone gets.
             </p>
             <div className="spec-list">
               <span>
@@ -291,8 +291,8 @@ function Home() {
                     <Icon name="image" />
                     <i>+</i>
                   </span>
-                  <strong>Selfie or pet photo?</strong>
-                  <span>One clear face, looking at the camera.</span>
+                  <strong>Got an animal photo?</strong>
+                  <span>One animal, looking at the camera.</span>
                 </div>
               )}
               <button
@@ -330,7 +330,7 @@ function Home() {
             )}
             <div className="sample-photos">
               <span>Or try a photo</span>
-              {['dog', 'cat', 'selfie'].map((name) => (
+              {['dog', 'cat'].map((name) => (
                 <button
                   key={name}
                   type="button"
@@ -436,7 +436,7 @@ function Home() {
               </div>
             )}
             <p className="permission-note">
-              Use your pet, yourself, or an adult who agreed. <a href="/terms">Terms</a> &amp;{' '}
+              Use one animal photo you have the right to use. <a href="/terms">Terms</a> &amp;{' '}
               <a href="/privacy">privacy</a>.
             </p>
           </form>
@@ -591,7 +591,7 @@ function Home() {
             <Icon name="image" />
             <h3>Pick your main character.</h3>
             <p>
-              One front-facing photo of your cat, dog or yourself. Clear eyes. Good light. Maximum
+              One front-facing photo of your cat, dog or another animal. Clear eyes. Good light. Maximum
               personality.
             </p>
           </article>

@@ -88,7 +88,7 @@ test('postprocessor writes one deterministic result and rejects missing or repla
     bucket,
   };
   const result = await postprocessOriginalAudio(args);
-  assert.deepEqual(result, [{ key: 'jobs/job_test/original-sound-v1.mp4', mediaType: 'video/mp4' }]);
+  assert.deepEqual(result, [{ key: 'jobs/job_test/1.mp4', mediaType: 'video/mp4' }]);
   assert.deepEqual(await postprocessOriginalAudio(args), result);
   assert.ok(data.get(result[0]!.key)!.length > 0);
   data.set(ORIGINAL_AUDIO_KEY, new Uint8Array([1, 2, 3]));

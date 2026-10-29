@@ -100,7 +100,7 @@ export const postprocessOriginalAudio: OutputPostprocessor = async ({ jobId, mod
   const hash = [...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('');
   if (hash !== ORIGINAL_AUDIO_SHA256) throw new Error('Original sound checksum mismatch');
   const result = await addOriginalAudio(new Uint8Array(await source.arrayBuffer()), audioBytes);
-  const key = `jobs/${jobId}/original-sound-v1.mp4`;
+  const key = `jobs/${jobId}/1.mp4`;
   await bucket.put(key, result, { httpMetadata: { contentType: 'video/mp4' } });
   return [{ key, mediaType: 'video/mp4' }];
 };

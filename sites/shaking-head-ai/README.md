@@ -7,13 +7,14 @@
 - Model: APIMart `seedance-2.0-mini`, first-frame image-to-video
 - Pricing: $8.80 / 20 credits / 1 video; $18.80 / 60 credits / 3 videos; $28.80 / 100 credits / 5 videos
 - Every generation uses 20 credits. No subscription or signup bonus. Purchased credits do not expire.
-- Support address to configure before launch: support@shakingheadai.org
+- Support: support@shakingheadai.org, forwarded through Cloudflare Email Routing; actual inbox delivery has not been tested.
 - Stripe account: `acct_1UVbDcAoOzLdqL1R` (Shaking Head AI, HK); account API confirms charges/payouts enabled. Statement descriptor `SHAKING HEAD AI`, short prefix `SHAKINGAI`. No live purchase has been tested.
 - Stripe webhook: `we_1UVbghAoOzLdqL1RUGif7WZ4`, `https://shakingheadai.org/api/webhooks/stripe`, nine checkout/refund/dispute events. Delivery and settlement need verification separately.
 - Cloudflare: `explusyqt@gmail.com`, account `80797548dfa9244ddcd458f0375525ae`; Worker `shaking-head-ai`, D1 `59084a06-f04d-4938-acb1-762c7b0f5437`, R2 `shaking-head-ai-outputs`.
-- Domain zone: `25f9d44a020d2bfab2d7d93c2147089c`, Free Website; registrar NS cutover must follow removal and expiry of the old DNSSEC DS.
-- Google OAuth: project `shakingheadai-20261029`, External / Production, only OpenID, email and profile. Local real Google sign-in passed; production-domain sign-in must be checked after deployment.
-- GA4: account `398760142`, property `561185914`, web stream `16223856936`, measurement `G-46QFS3MYRJ`; production collection must be verified independently of property creation.
+- Domain zone: `25f9d44a020d2bfab2d7d93c2147089c`, Free Website, active. Nameservers are `maciej.ns.cloudflare.com` and `wanda.ns.cloudflare.com`.
+- Google OAuth: project `shakingheadai-20261029`, External / Production, only OpenID, email and profile. Real Google sign-in passed locally and on the production domain.
+- GA4: account `398760142`, property `561185914`, web stream `16223856936`, measurement `G-46QFS3MYRJ`; production page-view and pricing events were observed in collection requests and Realtime.
+- GSC: `sc-domain:shakingheadai.org` verified; sitemap processed successfully with five discovered pages. Indexing remains unverified.
 
 ## Implementation
 
@@ -32,7 +33,7 @@ pnpm db:migrate:local
 PORT=6273 pnpm dev
 ```
 
-Use `UPSTREAM_MOCK=1` for development without upstream charges. Leave it empty only for an authorized real generation. Local Stripe values are dummy test credentials and never enable checkout. Standard or restricted Stripe keys require a webhook secret and `BILLING_ENABLED=1`; sandbox keys enable checkout only in development, while production requires live keys. Nonempty mock configuration closes payment APIs as well as buttons. `EMAIL_LOGIN_ENABLED=0` keeps email sign-in closed until the site's sending domain is configured; Google sign-in stays available. Local email QA can explicitly set it to `1` and use Miniflare's binding without sending external email.
+Use `UPSTREAM_MOCK=1` for development without upstream charges. Leave it empty only for an authorized real generation. Local credentials can point to real providers: never assume they are dummy values. Standard or restricted Stripe keys require a webhook secret and `BILLING_ENABLED=1`; sandbox keys enable checkout only in development, while production requires live keys. Nonempty mock configuration closes payment APIs as well as buttons. `EMAIL_LOGIN_ENABLED=0` keeps email sign-in closed until the site's sending domain is configured; Google sign-in stays available. Local email QA can explicitly set it to `1` and use Miniflare's binding without sending external email.
 
 ```sh
 pnpm --filter @shipwords/jobs check
@@ -70,12 +71,12 @@ Use this site's isolated Wrangler profile for every remote command; the global C
 XDG_CONFIG_HOME=/Users/yang/.config/shipwords/cloudflare-80797548 pnpm --filter ./sites/shaking-head-ai exec wrangler whoami
 ```
 
-Production secrets live in `~/.config/shipwords/shaking-head-ai.production-secrets.json` (0600), outside Git; upload with `wrangler secret bulk` using that private file. Google and Stripe source credentials have separate private `.env` files under the same directory. `BILLING_ENABLED=0` pauses checkout and reconciliation APIs; change it to `1` only for the owner-approved opening after nonpayment checks. `EMAIL_LOGIN_ENABLED` remains `0` until sending is configured.
+Production secrets live in `~/.config/shipwords/shaking-head-ai.production-secrets.json` (0600), outside Git; upload atomically with `wrangler deploy --secrets-file` using that private file. Google and Stripe source credentials have separate private `.env` files under the same directory. `BILLING_ENABLED=1` opens purchases after the owner-approved nonpayment checks; setting it to `0` pauses checkout and reconciliation APIs. `EMAIL_LOGIN_ENABLED` remains `0` until sending is configured; inbound support forwarding does not enable outbound email.
 
 Stripe webhook URL: `https://shakingheadai.org/api/webhooks/stripe`. Checkout creates inline prices from `site.config.ts`; dashboard Products/Prices are not required. The three packs are one-time payments, not subscriptions. Credentials stay outside Git under `~/.config/shipwords/` and in deployed Worker secrets. Never reuse another site's credentials without checking the owning account.
 
 Google OAuth uses the JavaScript origin `https://shakingheadai.org` and redirect URI `https://shakingheadai.org/api/auth/callback/google`. Local origins must be registered separately for the configured development port. The sign-in button is shown only when both Google credentials are present on the server.
 
-Finish the site, generation/audio behavior, Stripe and Google sign-in before GSC or GA4 setup. GSC ownership, sitemap submission, GA4 configuration and actual event collection each need separate evidence after the domain is live.
+GSC ownership, sitemap submission, GA4 configuration and actual event collection each need separate evidence after the domain is live. The production nonpayment review is in `.tmp/qa/acceptance/README.md`; it does not cover payment settlement or a new paid generation.
 
-Raw HTML, metadata, FAQ, mobile layout, media playback, login, upload and job behavior must be verified separately. ChatGPT live access and natural recommendation remain unverified while the domain is unpublished. A passing build or a local generation is not production evidence.
+Raw HTML, metadata, FAQ, mobile layout, media playback, login, upload and job behavior must be verified separately. Prompted ChatGPT feedback is not evidence of natural recommendations to other users. Original-song delivery and beat synchronization remain outside the verified production behavior. A passing build or a local generation is not production evidence.

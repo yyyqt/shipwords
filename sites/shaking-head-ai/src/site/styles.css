@@ -1941,3 +1941,87 @@ fieldset.drop-zone {
     border-radius: 15px;
   }
 }
+
+.phone-handoff {
+  text-align: center;
+  margin-block: 12px 18px;
+  font-size: 12px;
+}
+.handoff-panel {
+  position: relative;
+  border: 1px solid #20203544;
+  border-radius: 13px;
+  padding: 20px 16px 15px;
+  background: #fffdf5;
+}
+.handoff-panel img {
+  display: block;
+  width: 156px;
+  height: 156px;
+  margin: 0 auto 12px;
+}
+.handoff-close {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 24px;
+  line-height: 1;
+  padding: 3px;
+  cursor: pointer;
+}
+.handoff-notice {
+  font-size: 11px;
+  margin-top: 8px;
+  color: var(--color-muted);
+}
+.phone-page {
+  min-height: 100svh;
+  padding: 40px 20px;
+}
+.phone-upload {
+  width: min(420px, 100%);
+  margin: 0 auto;
+}
+.phone-brand {
+  display: inline-block;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  margin-bottom: 50px;
+}
+.phone-upload h1 {
+  font-size: 42px;
+  line-height: 1.05;
+  margin-bottom: 26px;
+}
+.phone-upload > p {
+  line-height: 1.7;
+}
+.phone-pick {
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+  margin-bottom: 12px;
+  text-align: center;
+  justify-content: center;
+}
+.phone-preview {
+  display: block;
+  width: min(230px, 100%);
+  max-height: 340px;
+  object-fit: contain;
+  margin: 0 auto 24px;
+  border: 2px solid var(--color-ink);
+  border-radius: 13px;
+}
+.phone-upload .error {
+  margin-block: 18px 10px;
+}
+@media (pointer: coarse) {
+  .phone-handoff {
+    display: none;
+  }
+}

@@ -1,6 +1,6 @@
 import { analyticsScripts } from '@shipwords/core/analytics';
 import { captureAttribution } from '@shipwords/core/react/attribution';
-import { createRootRoute, HeadContent, Link, Outlet, Scripts } from '@tanstack/react-router';
+import { createRootRoute, HeadContent, Link, Outlet, Scripts, useRouterState } from '@tanstack/react-router';
 import { type ReactNode, useEffect } from 'react';
 import { authClient } from '~/lib/auth';
 import { getPublicConfig } from '~/lib/public-config';
@@ -16,7 +16,7 @@ import site from '../../site.config';
 
 export const Route = createRootRoute({
   loader: () => getPublicConfig(),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     links: [
       { rel: 'stylesheet', href: appCss },
@@ -25,7 +25,10 @@ export const Route = createRootRoute({
       { rel: 'apple-touch-icon', href: '/apple-touch-icon.png?v=tilted-1' },
     ],
     // Analytics scripts are skipped in local dev so dev traffic stays out of reports.
-    scripts: import.meta.env.DEV ? [] : analyticsScripts(site),
+    scripts:
+      import.meta.env.DEV || matches.some((match) => match.pathname.startsWith('/phone/'))
+        ? []
+        : analyticsScripts(site),
   }),
   shellComponent: Document,
   component: Layout,
@@ -67,24 +70,32 @@ function Document({ children }: { children: ReactNode }) {
 }
 
 function Layout() {
+  const isPhone = useRouterState({ select: (state) => state.location.pathname.startsWith('/phone/') });
   const config = Route.useLoaderData();
   const auth = authClient(config.googleClientId);
   const session = auth.useSession();
   const user = session.data?.user;
 
   useEffect(() => {
-    captureAttribution();
-  }, []);
+    if (!isPhone) captureAttribution();
+  }, [isPhone]);
 
   useEffect(() => {
     // Show Google One Tap when signed out; skipped when Google is not configured.
-    if (session.isPending || session.data || !config.googleClientId) return;
+    if (isPhone || session.isPending || session.data || !config.googleClientId) return;
     promptGoogleOneTap(config.googleClientId);
-  }, [session.isPending, session.data, config.googleClientId]);
+  }, [isPhone, session.isPending, session.data, config.googleClientId]);
 
   useEffect(() => {
-    if (user?.id) identify(user.id);
-  }, [user?.id]);
+    if (!isPhone && user?.id) identify(user.id);
+  }, [isPhone, user?.id]);
+
+  if (isPhone)
+    return (
+      <main className="phone-page">
+        <Outlet />
+      </main>
+    );
 
   return (
     <div className="page">

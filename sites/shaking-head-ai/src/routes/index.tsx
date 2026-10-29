@@ -9,6 +9,8 @@ import { AccountLink } from '~/site/account';
 import { FAQS, GENERATED_CAT_EXAMPLE, TIKTOK_REFERENCES } from '~/site/content';
 import { MAX_PHOTO_BYTES, PHOTO_TYPES, VIDEO_OPTIONS } from '~/site/generation';
 import { Icon } from '~/site/icons';
+import { PhoneHandoff } from '~/site/phone-upload';
+import { preparePhoto } from '~/site/photo-upload';
 import { Plans, PricingLink } from '~/site/pricing';
 import { ExampleVideo, ReferenceVideo } from '~/site/reference-video';
 import { openSignIn } from '~/site/sign-in';
@@ -133,21 +135,7 @@ function Home() {
     uploadingRef.current = true;
     setUploading(true);
     try {
-      const bitmap = await createImageBitmap(file);
-      // Prepare a vertical reference portrait before upload.
-      const canvas = new OffscreenCanvas(720, 1280);
-      const context = canvas.getContext('2d');
-      if (!context) throw new Error('Image preparation unavailable');
-      const scale = Math.max(720 / bitmap.width, 1280 / bitmap.height);
-      const width = bitmap.width * scale;
-      const height = bitmap.height * scale;
-      context.drawImage(bitmap, (720 - width) / 2, (1280 - height) / 2, width, height);
-      bitmap.close();
-      const prepared = new File(
-        [await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.92 })],
-        file.name.replace(/\.[^.]+$/, '') + '.jpg',
-        { type: 'image/jpeg' },
-      );
+      const prepared = await preparePhoto(file);
       const path = await uploadReference(prepared);
       setPhoto({ path, name: file.name });
       track('photo_uploaded', { type: file.type });
@@ -323,6 +311,19 @@ function Home() {
               />
             </fieldset>
             <p className="file-note">JPG, PNG or WebP · up to 10 MB</p>
+            {restored && (
+              <PhoneHandoff
+                disabled={uploading || submitting || active || uncertain || checking}
+                photoPath={photo?.path ?? null}
+                place={(path) => {
+                  if (uploadingRef.current || sendingRef.current || active || uncertain || checking)
+                    return false;
+                  setPhoto({ path, name: 'Phone photo.jpg' });
+                  clearError();
+                  return true;
+                }}
+              />
+            )}
             <div className="sample-photos">
               <span>Or try a photo</span>
               {['dog', 'cat', 'selfie'].map((name) => (

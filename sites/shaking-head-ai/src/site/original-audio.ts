@@ -3,6 +3,7 @@ import {
   BufferSource,
   BufferTarget,
   EncodedAudioPacketSource,
+  type EncodedPacket,
   EncodedPacketSink,
   EncodedVideoPacketSource,
   Input,
@@ -10,13 +11,39 @@ import {
   Mp4OutputFormat,
   Output,
 } from 'mediabunny';
-import { clipMp4Presentation } from './mp4-duration.ts';
 
 export const ORIGINAL_AUDIO_KEY = 'assets/shaking-head/original-trend-v1.m4a';
 export const ORIGINAL_AUDIO_SHA256 = '4bb2e4e31a960edec23eb5da9fe50ef53bd453eafe7fda61af4d1a2343e55d55';
 export const ORIGINAL_SECONDS = 324664 / 44100;
 const MAX_VIDEO_BYTES = 16 * 1024 * 1024;
 const MAX_AUDIO_BYTES = 512 * 1024;
+
+/**
+ * Keep the decode-order prefix needed for visible frames. H.264 B-frames can depend
+ * on a later presentation frame that was decoded earlier. Preserve those encoded
+ * dependencies in a tiny final interval instead of keeping the entire model tail.
+ */
+export function trimVideoPackets(packets: readonly EncodedPacket[], start: number) {
+  const boundary = ORIGINAL_SECONDS - 0.002;
+  let last = -1;
+  for (let i = 0; i < packets.length; i++) {
+    if (packets[i]!.timestamp - start < boundary) last = i;
+  }
+  if (last < 0) throw new Error('No visible video packets');
+  const prefix = packets.slice(0, last + 1);
+  const dependencies = prefix
+    .filter((packet) => packet.timestamp - start >= boundary)
+    .sort((a, b) => a.timestamp - b.timestamp);
+  if (dependencies.length > 16) throw new Error('Unsupported video reorder depth');
+  const tick = 0.0001;
+  const tailStart = ORIGINAL_SECONDS - dependencies.length * tick;
+  return prefix.map((packet) => {
+    const rank = dependencies.indexOf(packet);
+    if (rank >= 0) return packet.clone({ timestamp: tailStart + rank * tick, duration: tick });
+    const timestamp = packet.timestamp - start;
+    return packet.clone({ timestamp, duration: Math.min(packet.duration, tailStart - timestamp) });
+  });
+}
 
 /** Pure packet remuxing: no audio/video encoder, no WebCodecs, no AI-generated audio retained. */
 export async function addOriginalAudio(videoBytes: Uint8Array, audioBytes: Uint8Array) {
@@ -49,8 +76,7 @@ export async function addOriginalAudio(videoBytes: Uint8Array, audioBytes: Uint8
     )
       throw new Error('Media duration does not cover the original sound');
     const target = new BufferTarget();
-    // Trailing moov permits a bounded edit-list trim without moving sample byte offsets.
-    const output = new Output({ format: new Mp4OutputFormat({ fastStart: false }), target });
+    const output = new Output({ format: new Mp4OutputFormat({ fastStart: 'in-memory' }), target });
     const videoSource = new EncodedVideoPacketSource('avc');
     const audioSource = new EncodedAudioPacketSource('aac');
     output.addVideoTrack(videoSource);
@@ -58,13 +84,12 @@ export async function addOriginalAudio(videoBytes: Uint8Array, audioBytes: Uint8
     await output.start();
     await Promise.all([
       (async () => {
+        const packets = [];
+        for await (const packet of new EncodedPacketSink(video).packets()) packets.push(packet);
         let first = true;
-        for await (const packet of new EncodedPacketSink(video).packets()) {
+        for (const packet of trimVideoPackets(packets, videoStart)) {
           if (first && packet.type !== 'key') throw new Error('Video must start with a key frame');
-          await videoSource.add(
-            packet.clone({ timestamp: packet.timestamp - videoStart }),
-            first ? { decoderConfig: videoConfig } : undefined,
-          );
+          await videoSource.add(packet, first ? { decoderConfig: videoConfig } : undefined);
           first = false;
         }
         videoSource.close();
@@ -72,7 +97,10 @@ export async function addOriginalAudio(videoBytes: Uint8Array, audioBytes: Uint8
       (async () => {
         let first = true;
         for await (const packet of new EncodedPacketSink(audio).packets()) {
-          await audioSource.add(packet, first ? { decoderConfig: audioConfig } : undefined);
+          await audioSource.add(
+            packet.clone({ duration: Math.min(packet.duration, ORIGINAL_SECONDS - packet.timestamp) }),
+            first ? { decoderConfig: audioConfig } : undefined,
+          );
           first = false;
         }
         audioSource.close();
@@ -80,7 +108,7 @@ export async function addOriginalAudio(videoBytes: Uint8Array, audioBytes: Uint8
     ]);
     await output.finalize();
     if (!target.buffer) throw new Error('Composition produced no media');
-    return clipMp4Presentation(new Uint8Array(target.buffer), ORIGINAL_SECONDS);
+    return new Uint8Array(target.buffer);
   } finally {
     videoInput.dispose();
     audioInput.dispose();

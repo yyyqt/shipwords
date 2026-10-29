@@ -7,7 +7,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { BufferSource, EncodedPacketSink, Input, MP4 } from 'mediabunny';
-import { clipMp4Presentation } from '../src/site/mp4-duration.ts';
 import {
   addOriginalAudio,
   ORIGINAL_AUDIO_KEY,
@@ -36,6 +35,8 @@ test('remux preserves original AAC packets and the generated video instead of ge
   try {
     assert.equal((await output.getVideoTracks()).length, 1);
     assert.equal((await output.getAudioTracks()).length, 1);
+    // Encoded B-frame decode duration can extend to the next frame boundary.
+    assert.ok((await output.computeDuration()) <= ORIGINAL_SECONDS + 1 / 24);
     const track = (await output.getPrimaryAudioTrack())!;
     assert.equal(await track.getSampleRate(), 44100); // Fixture's discarded generated audio is 32000 Hz.
     const hashes = async (input: Input) => {
@@ -63,8 +64,6 @@ test('missing/invalid media never falls back to an uncomposed result', async () 
   await assert.rejects(addOriginalAudio(new Uint8Array(16 * 1024 * 1024 + 1), original), /size limit/);
   await assert.rejects(addOriginalAudio(photoVideo, photoVideo), /duration/);
   await assert.rejects(addOriginalAudio(new Uint8Array([1, 2, 3]), original));
-  assert.throws(() => clipMp4Presentation(new Uint8Array([0, 0, 0]), ORIGINAL_SECONDS), /Truncated/);
-  assert.throws(() => clipMp4Presentation(new Uint8Array(), Number.NaN), /duration/);
 });
 
 test('postprocessor writes one deterministic result and rejects missing or replaced original sound', async () => {
@@ -118,9 +117,26 @@ test('independent MP4 decoder confirms 7.36-second playback and intact B-frame d
     assert.ok(Math.abs(Number(probe.format.duration) - ORIGINAL_SECONDS) < 0.0001);
     for (const track of probe.streams)
       assert.ok(Math.abs(Number(track.duration) - ORIGINAL_SECONDS) < 0.0001);
-    const decode = spawnSync('ffmpeg', ['-hide_banner', '-v', 'error', '-i', file, '-f', 'null', '-'], {
-      encoding: 'utf8',
-    });
+    const decode = spawnSync(
+      'ffmpeg',
+      [
+        '-hide_banner',
+        '-v',
+        'error',
+        '-i',
+        file,
+        '-enc_time_base',
+        '1:1000000',
+        '-fps_mode',
+        'passthrough',
+        '-f',
+        'null',
+        '-',
+      ],
+      {
+        encoding: 'utf8',
+      },
+    );
     assert.equal(decode.status, 0);
     assert.equal(decode.stderr, '');
   } finally {

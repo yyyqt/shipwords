@@ -25,6 +25,36 @@ const UPLOAD_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp']);
 const UPLOADS_PER_DAY = 40;
 const RECAPTCHA_ACTION = 'generate';
 
+/** Single byte range only. Unsupported/malformed or multipart ranges are ignored; valid but unsatisfiable ranges return 416. */
+function byteRange(value: string | null, size: number): { offset: number; length: number } | 416 | null {
+  if (!value) return null;
+  const match = /^bytes=(\d*)-(\d*)$/i.exec(value.trim());
+  if (!match || (!match[1] && !match[2])) return null;
+  const total = BigInt(size);
+  if (total === 0n) return 416;
+  if (!match[1]) {
+    const suffix = BigInt(match[2]!);
+    if (suffix === 0n) return 416;
+    // biome-ignore lint/complexity/useMathMinMax: Math.min does not accept bigint.
+    const length = suffix < total ? suffix : total;
+    return { offset: Number(total - length), length: Number(length) };
+  }
+  const start = BigInt(match[1]);
+  const end = match[2] ? BigInt(match[2]) : total - 1n;
+  if (start >= total || end < start) return 416;
+  const last = end < total ? end : total - 1n;
+  return { offset: Number(start), length: Number(last - start + 1n) };
+}
+
+/** If-Range uses strong entity tags or an exact Last-Modified date; weak/invalid validators fall back to the full representation. */
+function ifRangeMatches(value: string | null, object: R2Object): boolean {
+  if (!value) return true;
+  if (value.startsWith('"')) return value === object.httpEtag;
+  if (value.startsWith('W/')) return false;
+  const date = Date.parse(value);
+  return Number.isFinite(date) && date === Math.floor(object.uploaded.getTime() / 1000) * 1000;
+}
+
 interface CreateBody {
   modelId?: string;
   prompt?: string;
@@ -306,7 +336,7 @@ export function createJobs(core: Core, models: readonly ModelDefinition[]) {
     },
 
     /** GET /files/<key>: read outputs and uploads from R2. Keys contain a random ID and can't be enumerated. */
-    async file(_request: Request, key: string): Promise<Response> {
+    async file(request: Request, key: string): Promise<Response> {
       // assets/ holds site-provided assets (effect reference videos etc.); file names are chosen by the site, read-only.
       if (
         !/^(jobs\/job_[a-z0-9]+\/\d+\.[a-z0-9]+|uploads\/up_[a-z0-9]+\.(png|jpg|webp)|assets\/[a-z0-9][a-z0-9/_-]*\.(mp4|mp3|png|jpg|webp))$/.test(
@@ -320,13 +350,43 @@ export function createJobs(core: Core, models: readonly ModelDefinition[]) {
       const jobId = key.startsWith('jobs/') ? key.split('/')[1] : null;
       if (jobId && (await loadJob(core.db, jobId))?.status !== 'succeeded')
         return errorResponse(404, 'not_found');
-      const object = await env().OUTPUTS.get(key);
+      const bucket = env().OUTPUTS;
+      const info = await bucket.head(key);
+      if (!info) return errorResponse(404, 'not_found');
+      let range = ifRangeMatches(request.headers.get('if-range'), info)
+        ? byteRange(request.headers.get('range'), info.size)
+        : null;
+      if (range === 416)
+        return new Response(null, {
+          status: 416,
+          headers: {
+            'accept-ranges': 'bytes',
+            'content-range': `bytes */${info.size}`,
+            'content-length': '0',
+            'cache-control': 'no-store',
+          },
+        });
+      // A rewritten object between HEAD and GET must not be served with a range computed for the previous version.
+      let object = await bucket.get(key, range ? { range, onlyIf: { etagMatches: info.etag } } : undefined);
+      if (object && !('body' in object)) {
+        range = null;
+        object = await bucket.get(key);
+      }
       if (!object) return errorResponse(404, 'not_found');
+      if (!('body' in object)) throw new Error('R2 returned no file body');
       const headers = new Headers();
       object.writeHttpMetadata(headers);
       headers.set('etag', object.httpEtag);
+      headers.set('last-modified', object.uploaded.toUTCString());
+      headers.set('accept-ranges', 'bytes');
+      headers.set('content-length', String(range ? range.length : object.size));
+      if (range)
+        headers.set(
+          'content-range',
+          `bytes ${range.offset}-${range.offset + range.length - 1}/${object.size}`,
+        );
       headers.set('cache-control', 'public, max-age=31536000, immutable');
-      return new Response(object.body, { headers });
+      return new Response(object.body, { status: range ? 206 : 200, headers });
     },
   };
 }

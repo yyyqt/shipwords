@@ -24,6 +24,14 @@ export interface StepRunner {
   sleep(name: string, ms: number): Promise<void>;
 }
 
+/** Site-owned, retry-safe final media processing. Write deterministic job-local R2 keys; never submit another paid task. */
+export type OutputPostprocessor = (input: {
+  jobId: string;
+  modelId: string;
+  outputs: readonly StoredOutput[];
+  bucket: R2Bucket;
+}) => Promise<StoredOutput[]>;
+
 export interface RunnerDeps {
   db: Db;
   bucket: R2Bucket;
@@ -31,6 +39,8 @@ export interface RunnerDeps {
   adapters: Record<string, UpstreamAdapter>;
   /** Effect compose (effect.compose); empty when the site binds no container, and jobs that need compose fail with a refund. */
   composer?: Composer;
+  /** Runs durably after composition and before success; failures fail/refund the job rather than delivering raw media. */
+  postprocessOutputs?: OutputPostprocessor;
   fetcher?: typeof fetch;
   /** Notify the user when the job succeeds or fails (e.g. email) so they don't have to wait on the page; errors are only logged and don't affect the job. */
   notify?: (job: JobRow) => Promise<void>;
@@ -609,10 +619,54 @@ async function runSteps(deps: RunnerDeps, jobId: string, step: StepRunner): Prom
     if (!composed) return;
     finalOutputs = composed;
   }
+  const postprocess = deps.postprocessOutputs;
+  if (postprocess) {
+    const processed = await step.do('postprocess', async () => {
+      const job = await loadJob(deps.db, jobId);
+      if (!job || TERMINAL.includes(job.status)) return null;
+      const result = await postprocess({
+        jobId,
+        modelId: job.modelId,
+        outputs: finalOutputs,
+        bucket: deps.bucket,
+      });
+      await validatePostprocessedOutputs(deps.bucket, jobId, result);
+      return result;
+    });
+    if (!processed) return;
+    finalOutputs = processed;
+  }
   await step.do('finish', async () => {
     await markSucceeded(deps.db, jobId, finalOutputs);
     return true;
   });
+}
+
+/** Reject missing files and cross-job/path traversal metadata before any result is published. */
+async function validatePostprocessedOutputs(
+  bucket: R2Bucket,
+  jobId: string,
+  outputs: StoredOutput[],
+): Promise<void> {
+  if (!Array.isArray(outputs) || outputs.length === 0 || outputs.length > 16)
+    throw new Error('postprocessing returned no usable outputs');
+  const keys = new Set<string>();
+  for (const output of outputs) {
+    const prefix = `jobs/${jobId}/`;
+    if (
+      !output ||
+      typeof output.key !== 'string' ||
+      !output.key.startsWith(prefix) ||
+      !/^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)+$/.test(output.key.slice(prefix.length)) ||
+      typeof output.mediaType !== 'string' ||
+      !/^(?:image|video|audio)\/[a-zA-Z0-9.+-]+$/.test(output.mediaType) ||
+      keys.has(output.key)
+    )
+      throw new Error('postprocessing returned invalid output metadata');
+    keys.add(output.key);
+    const object = await bucket.head(output.key);
+    if (!object || object.size === 0) throw new Error('postprocessing output is missing or empty');
+  }
 }
 
 /** Stitch the output in effect segment order: rendered segments use model outputs, the rest use base clips. Stored as a with-track and a silent file. */

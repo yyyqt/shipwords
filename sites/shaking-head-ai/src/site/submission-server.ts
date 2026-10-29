@@ -162,7 +162,7 @@ export function siteJobHandlers(deps: Dependencies) {
           return await replay(request, receipt);
         }
         if (!deps.available())
-          return rejected('generation_unavailable', 'Video generation is not available yet.', 503);
+          return rejected('generation_unavailable', 'Video generation is temporarily unavailable.', 503);
         const claim = await bucket.put(key, JSON.stringify({ fingerprint, state: 'pending' }), {
           onlyIf: { etagDoesNotMatch: '*' },
         });

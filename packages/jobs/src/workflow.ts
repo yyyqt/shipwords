@@ -7,7 +7,7 @@ import { markFailed } from './lifecycle';
 import { MockAdapter, mockComposer, mockMode } from './mock';
 import type { ModelDefinition } from './models';
 import { emailOnFinish } from './notify';
-import { runGeneration } from './runner';
+import { type OutputPostprocessor, runGeneration } from './runner';
 import type { UpstreamAdapter } from './upstream';
 import { YirAdapter } from './yir';
 
@@ -70,7 +70,11 @@ const STEP_RETRIES = { retries: { limit: 5, delay: '10 seconds', backoff: 'expon
  * When site is passed and EMAIL is bound, signed-in users get an email when a job succeeds or fails.
  * workflows[].class_name in wrangler.jsonc must use the same name.
  */
-export function defineGenerationWorkflow(models: readonly ModelDefinition[], site?: SiteConfig) {
+export function defineGenerationWorkflow(
+  models: readonly ModelDefinition[],
+  site?: SiteConfig,
+  options?: { postprocessOutputs?: OutputPostprocessor },
+) {
   return class GenerationWorkflow extends WorkflowEntrypoint<JobsEnv, { jobId: string }> {
     override async run(event: Readonly<WorkflowEvent<{ jobId: string }>>, step: WorkflowStep) {
       const env = this.env;
@@ -82,6 +86,7 @@ export function defineGenerationWorkflow(models: readonly ModelDefinition[], sit
             bucket: env.OUTPUTS,
             models,
             adapters: createAdapters(env),
+            ...(options?.postprocessOutputs ? { postprocessOutputs: options.postprocessOutputs } : {}),
             ...(mockMode(env)
               ? { composer: mockComposer(env.OUTPUTS, fixedMockResult(env)) }
               : env.COMPOSE

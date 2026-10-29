@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <title>Shaking Head AI — Your photo. That head shake.</title>
+  <desc>7.36-second videos with the original trend sound.</desc>
+  <!-- Brand colors and vector smiley match the site's favicon. Render this
+       source at 1200 × 630 to update og-7s.png and the legacy og.png. -->
+  <rect width="1200" height="630" fill="#fff9e9"/>
+  <rect x="49.5" y="49.5" width="1101" height="531" rx="35" fill="#ffdf45" stroke="#202035" stroke-width="3"/>
+  <g transform="translate(83 83) scale(1.45)">
+    <g transform="rotate(-7 32 32)">
+      <rect x="9" y="9" width="50" height="50" rx="16" fill="#202035" stroke="#202035" stroke-width="3"/>
+      <rect x="6" y="6" width="50" height="50" rx="16" fill="#ffdc45" stroke="#202035" stroke-width="3"/>
+      <path d="M19 25h6m12 0h6M20.5 37c6 7.5 15 7.5 21 0" fill="none" stroke="#202035" stroke-width="4.5" stroke-linecap="round"/>
+    </g>
+  </g>
+  <g fill="#202035" font-family="Arial, Helvetica, sans-serif">
+    <text x="198" y="134" font-size="27" font-weight="700">SHAKING HEAD AI</text>
+    <g font-size="82" font-weight="700">
+      <text x="88" y="295">Your photo.</text>
+      <text x="88" y="390">That head shake.</text>
+    </g>
+    <text x="94" y="516" font-size="28">7.36-second videos. Original trend sound.</text>
+  </g>
+</svg>

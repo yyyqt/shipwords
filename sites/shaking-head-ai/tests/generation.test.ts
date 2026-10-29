@@ -6,7 +6,10 @@ const valid = { modelId: 'shaking-head', references: ['/files/uploads/up_abc123.
 test('one uploaded photo creates a fixed head-shake job', () => {
   const result = prepareGeneration(valid);
   assert.ok(result);
-  assert.match(result.prompt, /three times over fifteen seconds/);
+  assert.match(result.prompt, /0.7–2.0 seconds/);
+  assert.match(result.prompt, /4.2–5.6 seconds/);
+  assert.match(result.prompt, /Output a silent video/);
+  assert.match(result.prompt, /end at 7.36 seconds/);
   assert.deepEqual(result.references, valid.references);
 });
 test('caller cannot replace the prompt, model parameters or duration', () => {

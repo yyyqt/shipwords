@@ -7,7 +7,7 @@ export const Route = createFileRoute('/llms.txt')({
       GET: () =>
         llmsTxt(
           site,
-          'Shaking Head AI makes a 15-second 720p vertical head-shake reaction video from one pet photo or adult selfie, with an AI-generated instrumental beat. Each video costs 20 credits. One-time packs: $8.80 for 20 credits (1 video), $18.80 for 60 (3 videos), $28.80 for 100 (5 videos). No subscription or welcome credits. JPG, PNG or WebP up to 10 MB. Account required. Credited TikTok references are not generated examples from this site. AI results vary.',
+          'Shaking Head AI makes a 7.36-second 720p vertical head-shake reaction video from one pet photo or adult selfie, with the original trend sound. Each video costs 20 credits. One-time packs: $8.80 for 20 credits (1 video), $18.80 for 60 (3 videos), $28.80 for 100 (5 videos). No subscription or welcome credits. JPG, PNG or WebP up to 10 MB. Account required. Credited TikTok references are not generated examples from this site. AI results vary.',
           [
             {
               title: 'Shaking Head AI Video Generator',

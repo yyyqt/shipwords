@@ -31,7 +31,7 @@ export function withBillingReady(
   if (!integrationReadiness(env, development, preview).checkoutReady) {
     return Promise.resolve(
       Response.json(
-        { error: { code: 'billing_unavailable', message: 'Payments are not available yet.' } },
+        { error: { code: 'billing_unavailable', message: 'Payments are temporarily unavailable.' } },
         { status: 503 },
       ),
     );

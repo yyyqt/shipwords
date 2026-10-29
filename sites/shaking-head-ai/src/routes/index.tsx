@@ -19,9 +19,9 @@ export const Route = createFileRoute('/')({
     pageHead(site, {
       title: 'Shaking Head AI Video Generator — Your Photo, the Viral Head Shake',
       description:
-        'Make a shaking head AI video from one pet photo or selfie. Get a 15-second, 720p vertical MP4 with an AI-made beat. One-time packs from $8.80. No subscription.',
+        'Make a shaking head AI video from one pet photo or selfie. Get a 7.36-second, 720p vertical MP4 with the original trend sound. One-time packs from $8.80. No subscription.',
       path: '/',
-      image: `${site.url}/og.png`,
+      image: `${site.url}/og-7s.png`,
       jsonLd: [
         {
           '@type': 'WebApplication',
@@ -33,7 +33,7 @@ export const Route = createFileRoute('/')({
             '@type': 'Offer',
             price: '8.80',
             priceCurrency: 'USD',
-            description: '20 credits for one 15-second video',
+            description: '20 credits for one 7.36-second video',
           },
         },
         {
@@ -225,7 +225,7 @@ function Home() {
             <div className="spec-list">
               <span>
                 <Icon name="film" />
-                15 seconds
+                7.36 seconds
               </span>
               <span>
                 <Icon name="phone" />
@@ -233,7 +233,7 @@ function Home() {
               </span>
               <span>
                 <Icon name="music" />
-                AI-made beat
+                Original trend sound
               </span>
             </div>
           </div>
@@ -480,10 +480,7 @@ function Home() {
             <span>03</span>
             <Icon name="download" />
             <h3>Download. Add your caption.</h3>
-            <p>
-              Get your MP4 with a new instrumental beat. Add the trend’s original sound in TikTok or Reels if
-              you want.
-            </p>
+            <p>Get your MP4 with the original trend sound, ready for your caption.</p>
           </article>
         </div>
       </section>
@@ -503,7 +500,7 @@ function Home() {
         </div>
         <Plans />
         <p className="pricing-specs">
-          15 seconds · 720p vertical MP4 · AI-made instrumental beat · No site watermark
+          7.36 seconds · 720p vertical MP4 · Original trend sound · No site watermark
         </p>
       </section>
       <section className="faq-section" id="faq">

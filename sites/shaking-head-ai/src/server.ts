@@ -2,11 +2,14 @@ import { proxyRybbit } from '@shipwords/core/analytics';
 import { defineGenerationWorkflow } from '@shipwords/jobs/workflow';
 import handler from '@tanstack/react-start/server-entry';
 import { paraglideMiddleware } from '~/paraglide/server.js';
+import { postprocessOriginalAudio } from '~/site/original-audio';
 import site from '../site.config';
 import models from '../site.models';
 
 // Worker entry: pages and API go to TanStack Start; also exports the generation Workflow class.
-export const GenerationWorkflow = defineGenerationWorkflow(models, site);
+export const GenerationWorkflow = defineGenerationWorkflow(models, site, {
+  postprocessOutputs: postprocessOriginalAudio,
+});
 
 export default {
   async fetch(request, env) {

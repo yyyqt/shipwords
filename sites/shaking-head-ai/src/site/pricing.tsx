@@ -87,11 +87,11 @@ export function Plans({
               <ul>
                 <li>
                   <Icon name="check" />
-                  15-second videos in 720p
+                  7.36-second videos in 720p
                 </li>
                 <li>
                   <Icon name="check" />
-                  AI-made instrumental beat
+                  Original trend sound
                 </li>
                 <li>
                   <Icon name="check" />
@@ -112,7 +112,7 @@ export function Plans({
                   'Opening checkout…'
                 ) : (
                   <>
-                    Get {credits} credits <Icon name="arrow" />
+                    Buy {videos} {videos === 1 ? 'video' : 'videos'} <Icon name="arrow" />
                   </>
                 )}
               </button>
@@ -131,7 +131,7 @@ export function Plans({
         <p className="checkout-notice">
           {config.preview
             ? 'Checkout is disabled in this local preview. The prices above are the planned one-time packs.'
-            : 'Credit purchases are not available yet. Please check back soon.'}
+            : 'Checkout is temporarily unavailable. Please try again shortly.'}
         </p>
       )}
       {error && (

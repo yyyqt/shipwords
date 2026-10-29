@@ -26,7 +26,7 @@
   "common_pay_refund_policy": "Refund policy",
   "common_pricing_dialog_title": "Pick your pack",
   "common_sign_in_dialog_title": "Sign in",
-  "common_sign_in_dialog_note": "Your photo stays here.",
+  "common_sign_in_dialog_note": "Your selected photo will be kept after sign-in.",
   "common_sign_in_google_failed": "Google sign-in failed. Try again or use your email.",
   "common_sign_in_google_unavailable": "Google sign-in is unavailable. Use your email instead.",
   "common_sign_in_send_failed": "Could not send the code",

@@ -3,10 +3,10 @@
 - Domain: https://shakingheadai.org
 - Target: shaking head ai, shaking head AI video, shaking head trend
 - Status: first release; paid generation quality and payment settlement require separate acceptance
-- Product: one photo of an adult or a pet → a 7.36-second 720p 9:16 MP4 with the original trend sound
+- Product: one photo of an adult or a pet → a 7.36-second or 15-second 720p 9:16 MP4 with the original trend sound
 - Model: APIMart `seedance-2.0-mini`, first-frame image-to-video
-- Pricing: $8.80 / 20 credits / 1 video; $18.80 / 60 credits / 3 videos; $28.80 / 100 credits / 5 videos
-- Every generation uses 20 credits. No subscription or signup bonus. Purchased credits do not expire.
+- Packs: $8.80 / 20 credits; $18.80 / 60 credits; $28.80 / 100 credits. Enough for 2/6/10 short videos or 1/3/5 long videos.
+- A 7.36-second video uses 10 credits; a 15-second video uses 20 credits. Packs can mix both lengths. No subscription or signup bonus. Purchased credits do not expire.
 - Support: support@shakingheadai.org, forwarded through Cloudflare Email Routing; actual inbox delivery has not been tested.
 - Stripe account: `acct_1UVbDcAoOzLdqL1R` (Shaking Head AI, HK); account API confirms charges/payouts enabled. Statement descriptor `SHAKING HEAD AI`, short prefix `SHAKINGAI`. No live purchase has been tested.
 - Stripe webhook: `we_1UVbghAoOzLdqL1RUGif7WZ4`, `https://shakingheadai.org/api/webhooks/stripe`, nine checkout/refund/dispute events. Delivery and settlement need verification separately.
@@ -18,7 +18,7 @@
 
 ## Implementation
 
-Created from `templates/ai-site`. Auth, credits, payments, jobs and Workflows stay in the shared packages. The site owns its pages and visual design. `src/site/generation.ts` fixes the head-shake prompt; the API accepts one uploaded photo and discards caller-supplied model parameters. Uploaded images are prepared as 720×1280 JPEGs before entering R2, so the first frame matches the promised portrait output. Seedance renders eight silent seconds; the site postprocessor adds the pinned original AAC excerpt and trims the video to match 324664/44100 seconds without looping or re-encoding the audio. Video tail packets are discarded; any required H.264 look-ahead frames occupy a sub-millisecond final interval so B-frame decoding stays intact. Missing or modified audio fails the job through the normal credit-refund path.
+Created from `templates/ai-site`. Auth, credits, payments, jobs and Workflows stay in the shared packages. The site owns its pages and visual design. `src/site/generation.ts` fixes the head-shake prompt; the API accepts one uploaded photo and discards caller-supplied model parameters. Uploaded images are prepared as 720×1280 JPEGs before entering R2, so the first frame matches the promised portrait output. Seedance renders eight silent seconds for the short option or 15 silent seconds for the long option; the site postprocessor adds the mode-specific pinned AAC track and trims the video to match its duration: 324664/44100 seconds for short, or 15 seconds for long. The short track never loops; the long track is an original-speed audio loop. Neither track is re-encoded during job processing. Video tail packets are discarded; any required H.264 look-ahead frames occupy a sub-millisecond final interval so B-frame decoding stays intact. Missing or modified audio fails the job through the normal credit-refund path.
 
 Direct APIMart support lives in `packages/jobs/src/apimart.ts`. The adapter copies the input from R2 to APIMart's image upload endpoint, submits a job once, polls it and lets the existing runner store the result. Atomic R2 claims prevent duplicate paid POSTs after a replay or an uncertain response. There is no documented upstream cancel API; local cancellation refunds user credits but may not prevent the upstream from charging. The cost limit is checked against a published-rate estimate and is not enforced by APIMart.
 
@@ -86,3 +86,5 @@ Raw HTML, metadata, FAQ, mobile layout, media playback, login, upload and job be
 Before deploying the postprocessor, upload `public/media/original-trend-v1.m4a` to this site's R2 key `assets/shaking-head/original-trend-v1.m4a`. Read it back and verify SHA-256 `4bb2e4e31a960edec23eb5da9fe50ef53bd453eafe7fda61af4d1a2343e55d55`. The worker checks the same hash for every job. The original 319 AAC packets are retained; no generated audio is included. The timeline prompt has two shake windows, 0.7–2.0 and 4.2–5.6 seconds. This instructs timing but does not guarantee frame-exact model adherence.
 
 Run `node --test sites/shaking-head-ai/tests/*.test.ts` for the site contract and real packet-remux tests. The independent FFmpeg decoder test runs when FFmpeg/ffprobe are installed. `tests/fixtures/generated-eight-seconds.mp4` is a synthetic blue H.264/B-frame clip with an 880 Hz generated-audio test track, never a customer result.
+
+The 15-second option uses `public/media/original-trend-loop15-v1.m4a`, uploaded to R2 key `assets/shaking-head/original-trend-loop15-v1.m4a`, SHA-256 `e2cbf6b3a812d89ded86ac4c01594cc39b09e0b801e42e7f72ec038086cfc79f`. It is an original-speed loop of the reference sound, not a claim of an original continuous 15-second recording. The short option never loops. Server-owned model IDs determine costs and duration; caller-supplied pricing, duration and audio parameters are discarded.

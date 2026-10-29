@@ -7,7 +7,7 @@ import { useSafeGeneration } from '~/lib/safe-generation';
 import { track } from '~/lib/track';
 import { AccountLink } from '~/site/account';
 import { FAQS, TIKTOK_REFERENCES } from '~/site/content';
-import { MAX_PHOTO_BYTES, PHOTO_TYPES, VIDEO_CREDITS } from '~/site/generation';
+import { MAX_PHOTO_BYTES, PHOTO_TYPES, VIDEO_OPTIONS } from '~/site/generation';
 import { Icon } from '~/site/icons';
 import { Plans, PricingLink } from '~/site/pricing';
 import { ReferenceVideo } from '~/site/reference-video';
@@ -19,9 +19,9 @@ export const Route = createFileRoute('/')({
     pageHead(site, {
       title: 'Shaking Head AI Video Generator — Your Photo, the Viral Head Shake',
       description:
-        'Make a shaking head AI video from one pet photo or selfie. Get a 7.36-second, 720p vertical MP4 with the original trend sound. One-time packs from $8.80. No subscription.',
+        'Make a shaking head AI video from one pet photo or selfie. Choose a 7.36- or 15-second, 720p vertical MP4 with the original trend sound. One-time packs from $8.80. No subscription.',
       path: '/',
-      image: `${site.url}/og-7s.png`,
+      image: `${site.url}/og-duration-options.png`,
       jsonLd: [
         {
           '@type': 'WebApplication',
@@ -33,7 +33,7 @@ export const Route = createFileRoute('/')({
             '@type': 'Offer',
             price: '8.80',
             priceCurrency: 'USD',
-            description: '20 credits for one 7.36-second video',
+            description: '20 credits: two 7.36-second videos or one 15-second video',
           },
         },
         {
@@ -51,6 +51,8 @@ export const Route = createFileRoute('/')({
 
 const root = getRouteApi('__root__');
 const STATE_KEY = 'shaking-head:photo:v1';
+const DURATION_KEY = 'shaking-head:duration:v1';
+type VideoId = (typeof VIDEO_OPTIONS)[number]['id'];
 type Photo = { path: string; name: string };
 const isActive = (job: PublicJob) => job.status === 'queued' || job.status === 'submitted';
 
@@ -61,6 +63,8 @@ function Home() {
     session.data?.user.id ?? null,
   );
   const [photo, setPhoto] = useState<Photo | null>(null);
+  const [selectedId, setSelectedId] = useState<VideoId>('shaking-head');
+  const selected = VIDEO_OPTIONS.find((option) => option.id === selectedId) ?? VIDEO_OPTIONS[0];
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [cancelError, setCancelError] = useState('');
@@ -75,6 +79,10 @@ function Home() {
 
   useEffect(() => {
     try {
+      const savedDuration = sessionStorage.getItem(DURATION_KEY);
+      if (VIDEO_OPTIONS.some((option) => option.id === savedDuration)) {
+        setSelectedId(savedDuration as VideoId);
+      }
       const saved = JSON.parse(sessionStorage.getItem(STATE_KEY) ?? 'null') as Photo | null;
       if (saved && /^\/files\/uploads\/up_[a-z0-9]+\.(jpg|png|webp)$/.test(saved.path)) setPhoto(saved);
       const url = new URL(location.href);
@@ -92,12 +100,13 @@ function Home() {
   useEffect(() => {
     if (!restored) return;
     try {
+      sessionStorage.setItem(DURATION_KEY, selectedId);
       if (photo) sessionStorage.setItem(STATE_KEY, JSON.stringify(photo));
       else sessionStorage.removeItem(STATE_KEY);
     } catch {
       /* The current photo still works when persistence is unavailable. */
     }
-  }, [photo, restored]);
+  }, [photo, selectedId, restored]);
 
   useEffect(() => {
     for (const job of jobs) {
@@ -172,11 +181,11 @@ function Home() {
       setUploadError('This sample photo is unavailable. Please upload your own photo.');
     }
   }
-  async function start() {
+  async function start(modelId: VideoId = selectedId) {
     if (!photo || sendingRef.current || active || uploadingRef.current || uncertain || checking) return;
     sendingRef.current = true;
     try {
-      const job = await generate({ modelId: 'shaking-head', references: [photo.path] });
+      const job = await generate({ modelId, references: [photo.path] });
       if (job) {
         track('generate_started', { model: job.modelId });
         document.getElementById('results')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -188,9 +197,15 @@ function Home() {
   function submit(event: FormEvent) {
     event.preventDefault();
     if (!photo || uploading || submitting || active || uncertain || checking) return;
-    track('generate_click', { signedIn: !!session.data });
-    if (!session.data) openSignIn(() => void start(), 'generate');
-    else void start();
+    track('generate_click', { signedIn: !!session.data, model: selectedId });
+    const modelId = selectedId;
+    try {
+      sessionStorage.setItem(DURATION_KEY, modelId);
+    } catch {
+      /* The selected option still works when persistence is unavailable. */
+    }
+    if (!session.data) openSignIn(() => void start(modelId), 'generate');
+    else void start(modelId);
   }
   async function cancelJob(id: string) {
     setCancelError('');
@@ -225,7 +240,7 @@ function Home() {
             <div className="spec-list">
               <span>
                 <Icon name="film" />
-                7.36 seconds
+                7.36 or 15 seconds
               </span>
               <span>
                 <Icon name="phone" />
@@ -322,6 +337,31 @@ function Home() {
                 </button>
               ))}
             </div>
+            <div className="duration-options" role="radiogroup" aria-label="Video duration">
+              {VIDEO_OPTIONS.map((option) => (
+                <label key={option.id}>
+                  <input
+                    type="radio"
+                    name="video-duration"
+                    value={option.id}
+                    checked={selectedId === option.id}
+                    disabled={submitting || active || uncertain || checking}
+                    onChange={() => {
+                      setSelectedId(option.id);
+                      clearError();
+                      try {
+                        sessionStorage.setItem(DURATION_KEY, option.id);
+                      } catch {
+                        /* Selection remains available without browser storage. */
+                      }
+                    }}
+                  />
+                  <span>
+                    {option.seconds}s · {option.credits} credits
+                  </span>
+                </label>
+              ))}
+            </div>
             <button
               type="submit"
               className="primary make-button"
@@ -345,13 +385,15 @@ function Home() {
                 'Your video is generating…'
               ) : (
                 <>
-                  Make my video <Icon name="arrow" />
+                  Make my video · {selected.credits} credits <Icon name="arrow" />
                 </>
               )}
             </button>
             <p className="credit-note">
-              {VIDEO_CREDITS} credits per video ·{' '}
-              <PricingLink source="generator">from $5.76 with a pack</PricingLink>
+              {selected.credits} credits per video ·{' '}
+              <PricingLink source="generator">
+                from ${selected.credits === 10 ? '2.88' : '5.76'} with a pack
+              </PricingLink>
             </p>
             {!config.generationReady && (
               <p className="notice">Generation is opening soon. You can explore the trend below.</p>
@@ -373,7 +415,7 @@ function Home() {
               <div className="error" role="alert">
                 {error.code === 'insufficient_credits' ? (
                   <>
-                    You need 20 credits for this video.{' '}
+                    You need {selected.credits} credits for this video.{' '}
                     <PricingLink source="insufficient_credits">Choose a pack</PricingLink>
                   </>
                 ) : error.code === 'login_required' ? (
@@ -493,14 +535,14 @@ function Home() {
             </h2>
           </div>
           <p>
-            Every video uses 20 credits.
+            7.36 seconds: 10 credits. 15 seconds: 20 credits.
             <br />
             Purchased credits never expire.
           </p>
         </div>
         <Plans />
         <p className="pricing-specs">
-          7.36 seconds · 720p vertical MP4 · Original trend sound · No site watermark
+          7.36 or 15 seconds · 720p vertical MP4 · Original trend sound · No site watermark
         </p>
       </section>
       <section className="faq-section" id="faq">

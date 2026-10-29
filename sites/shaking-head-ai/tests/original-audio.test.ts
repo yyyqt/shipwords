@@ -9,6 +9,8 @@ import test from 'node:test';
 import { BufferSource, EncodedPacketSink, Input, MP4 } from 'mediabunny';
 import {
   addOriginalAudio,
+  LONG_AUDIO_KEY,
+  LONG_AUDIO_SHA256,
   ORIGINAL_AUDIO_KEY,
   ORIGINAL_AUDIO_SHA256,
   ORIGINAL_SECONDS,
@@ -142,4 +144,59 @@ test('independent MP4 decoder confirms 7.36-second playback and intact B-frame d
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('15-second mode uses only its pinned original-sound loop and preserves15-second playback', async () => {
+  const video = new Uint8Array(
+    await readFile(new URL('./fixtures/generated-fifteen-seconds.mp4', import.meta.url)),
+  );
+  const audio = new Uint8Array(
+    await readFile(new URL('../public/media/original-trend-loop15-v1.m4a', import.meta.url)),
+  );
+  assert.equal(createHash('sha256').update(audio).digest('hex'), LONG_AUDIO_SHA256);
+  const data = new Map([
+    ['jobs/job_long/0.mp4', video],
+    [LONG_AUDIO_KEY, audio],
+  ]);
+  const bucket = {
+    get: async (key: string) => {
+      const bytes = data.get(key);
+      return bytes ? { size: bytes.length, arrayBuffer: async () => bytes.slice().buffer } : null;
+    },
+    put: async (key: string, bytes: Uint8Array) => {
+      data.set(key, bytes);
+    },
+  } as unknown as R2Bucket;
+  const result = await postprocessOriginalAudio({
+    jobId: 'job_long',
+    modelId: 'shaking-head-15s',
+    outputs: [{ key: 'jobs/job_long/0.mp4', mediaType: 'video/mp4' }],
+    bucket,
+  });
+  assert.equal(result[0]!.key, 'jobs/job_long/1.mp4');
+  const source = inputOf(audio);
+  const output = inputOf(data.get(result[0]!.key)!);
+  try {
+    assert.ok(Math.abs((await output.computeDuration()) - 15) < 0.05);
+    const hashPackets = async (input: Input) => {
+      const out = [];
+      for await (const packet of new EncodedPacketSink((await input.getPrimaryAudioTrack())!).packets())
+        out.push(createHash('sha256').update(packet.data).digest('hex'));
+      return out;
+    };
+    assert.deepEqual(await hashPackets(output), await hashPackets(source));
+  } finally {
+    source.dispose();
+    output.dispose();
+  }
+  data.delete(LONG_AUDIO_KEY);
+  await assert.rejects(
+    postprocessOriginalAudio({
+      jobId: 'job_long',
+      modelId: 'shaking-head-15s',
+      outputs: [{ key: 'jobs/job_long/0.mp4', mediaType: 'video/mp4' }],
+      bucket,
+    }),
+    /unavailable/,
+  );
 });

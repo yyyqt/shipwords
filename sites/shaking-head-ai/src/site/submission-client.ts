@@ -43,7 +43,7 @@ export function submissionClient(
     const value = JSON.parse(raw) as Pending;
     if (
       !REQUEST_ID.test(value.requestId) ||
-      value.modelId !== 'shaking-head' ||
+      (value.modelId !== 'shaking-head' && value.modelId !== 'shaking-head-15s') ||
       !Array.isArray(value.references)
     )
       throw new Error(

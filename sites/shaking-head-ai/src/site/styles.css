@@ -398,6 +398,45 @@ h1 span::after {
   background: #ffe779;
   transform: translateY(-1px);
 }
+.duration-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.duration-options label {
+  position: relative;
+  cursor: pointer;
+}
+.duration-options input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.duration-options span {
+  display: block;
+  padding: 11px 4px;
+  border: 1.5px solid #20203555;
+  border-radius: 9px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.duration-options input:checked + span {
+  background: #ffdc45;
+  border-color: var(--color-ink);
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+.duration-options input:focus-visible + span {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+.duration-options input:disabled + span {
+  opacity: 0.55;
+  cursor: default;
+}
 .make-button {
   width: 100%;
   font-size: 15px;
@@ -834,6 +873,11 @@ h2 {
   font-size: 10px;
   margin-top: 4px;
   font-weight: 500;
+  color: #746b58;
+}
+.plan-usage {
+  font-size: 12px;
+  margin-top: 12px;
   color: #746b58;
 }
 .plan ul {

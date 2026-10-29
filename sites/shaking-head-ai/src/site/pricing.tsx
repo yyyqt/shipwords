@@ -4,7 +4,7 @@ import { getRouteApi } from '@tanstack/react-router';
 import { type MouseEvent, type ReactNode, useEffect, useRef } from 'react';
 import { authClient } from '~/lib/auth';
 import { track } from '~/lib/track';
-import { VIDEO_CREDITS } from '~/site/generation';
+import { VIDEO_OPTIONS } from '~/site/generation';
 import { Icon } from '~/site/icons';
 import { openSignIn } from '~/site/sign-in';
 import site from '../../site.config';
@@ -69,7 +69,8 @@ export function Plans({
       <div className="plans">
         {site.products.map((product, index) => {
           const credits = product.kind === 'credits' ? product.credits : 0;
-          const videos = credits / VIDEO_CREDITS;
+          const shortVideos = credits / VIDEO_OPTIONS[0].credits;
+          const longVideos = credits / VIDEO_OPTIONS[1].credits;
           return (
             <article className={`plan ${index === 1 ? 'featured-plan' : ''}`} key={product.id}>
               <Heading>{product.name}</Heading>
@@ -78,16 +79,16 @@ export function Plans({
                 <span>one time</span>
               </p>
               <div className="plan-video-count">
-                <strong>{videos}</strong>
-                <span>
-                  {videos === 1 ? 'video' : 'videos'}
-                  <small>{credits} credits</small>
-                </span>
+                <strong>{credits}</strong>
+                <span>credits</span>
               </div>
+              <p className="plan-usage">
+                {shortVideos} short or {longVideos} long {longVideos === 1 ? 'video' : 'videos'}
+              </p>
               <ul>
                 <li>
                   <Icon name="check" />
-                  7.36-second videos in 720p
+                  7.36s or 15s videos in 720p
                 </li>
                 <li>
                   <Icon name="check" />
@@ -112,17 +113,10 @@ export function Plans({
                   'Opening checkout…'
                 ) : (
                   <>
-                    Buy {videos} {videos === 1 ? 'video' : 'videos'} <Icon name="arrow" />
+                    Buy {credits} credits <Icon name="arrow" />
                   </>
                 )}
               </button>
-              <p className="per-video">
-                {new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: product.price.currency,
-                }).format(product.price.amount / 100 / videos)}{' '}
-                per video
-              </p>
             </article>
           );
         })}
@@ -164,7 +158,7 @@ export function PricingDialog() {
         ×
       </button>
       <h2 id="pricing-title">Pick your pack.</h2>
-      <p>20 credits per video. One-time purchase. No subscription.</p>
+      <p>7.36s · 10 credits. 15s · 20 credits. Mix both in any pack.</p>
       <Plans source="dialog" />
     </dialog>
   );

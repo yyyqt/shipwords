@@ -657,7 +657,8 @@ async function validatePostprocessedOutputs(
       !output ||
       typeof output.key !== 'string' ||
       !output.key.startsWith(prefix) ||
-      !/^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)+$/.test(output.key.slice(prefix.length)) ||
+      // Keep this compatible with handlers.file: stored results must be publicly addressable job files.
+      !/^jobs\/job_[a-z0-9]+\/\d+\.[a-z0-9]+$/.test(output.key) ||
       typeof output.mediaType !== 'string' ||
       !/^(?:image|video|audio)\/[a-zA-Z0-9.+-]+$/.test(output.mediaType) ||
       keys.has(output.key)

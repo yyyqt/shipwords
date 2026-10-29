@@ -85,13 +85,13 @@ function durable(cache = new Map<string, unknown>()): StepRunner {
 }
 
 const writeFinal: OutputPostprocessor = async ({ jobId, bucket }) => {
-  const key = `jobs/${jobId}/original-track.mp4`;
+  const key = `jobs/${jobId}/1.mp4`;
   await bucket.put(key, new Uint8Array([9, 8, 7]), { httpMetadata: { contentType: 'video/mp4' } });
   return [{ key, mediaType: 'video/mp4' }];
 };
 
 describe('site-owned output postprocessing', () => {
-  it('publishes only processed existing media, after storage and before success', async () => {
+  it('publishes existing numeric output media, after storage and before success', async () => {
     const { userId, jobId } = await paidJob();
     const { deps, calls } = upstream();
     const seen: string[] = [];
@@ -112,7 +112,7 @@ describe('site-owned output postprocessing', () => {
     expect(seen).toEqual(['video']);
     expect(await loadJob(db, jobId)).toMatchObject({
       status: 'succeeded',
-      outputsJson: JSON.stringify([{ key: `jobs/${jobId}/original-track.mp4`, mediaType: 'video/mp4' }]),
+      outputsJson: JSON.stringify([{ key: `jobs/${jobId}/1.mp4`, mediaType: 'video/mp4' }]),
     });
     expect((await getBalance(db, userId)).available).toBe(40);
     expect(calls).toEqual({ submits: 1, polls: 1, downloads: 1 });
@@ -131,6 +131,26 @@ describe('site-owned output postprocessing', () => {
     expect(await loadJob(db, jobId)).toMatchObject({ status: 'failed', outputsJson: null });
     expect((await getBalance(db, userId)).available).toBe(50);
     expect(processing).toBe(1);
+    expect(calls.submits).toBe(1);
+  });
+
+  it('rejects an existing named R2 object that the public file route cannot serve, and refunds once', async () => {
+    const { userId, jobId } = await paidJob();
+    const { deps, calls } = upstream();
+    const key = `jobs/${jobId}/final.mp4`;
+    await env.OUTPUTS.put(key, new Uint8Array([9, 8, 7]), {
+      httpMetadata: { contentType: 'video/mp4' },
+    });
+    expect((await env.OUTPUTS.head(key))?.size).toBe(3);
+    const postprocessOutputs: OutputPostprocessor = async () => [{ key, mediaType: 'video/mp4' }];
+    await runGeneration({ ...deps, postprocessOutputs }, jobId, durable());
+    await runGeneration({ ...deps, postprocessOutputs }, jobId, durable());
+    expect(await loadJob(db, jobId)).toMatchObject({
+      status: 'failed',
+      errorMessage: 'postprocessing returned invalid output metadata',
+      outputsJson: null,
+    });
+    expect((await getBalance(db, userId)).available).toBe(50);
     expect(calls.submits).toBe(1);
   });
 
@@ -203,16 +223,16 @@ describe('site-owned output postprocessing', () => {
     expect(processing).toBe(2);
     expect(calls).toEqual({ submits: 1, polls: 1, downloads: 1 });
     expect((await loadJob(db, jobId))?.status).toBe('succeeded');
-    expect(await (await env.OUTPUTS.get(`jobs/${jobId}/original-track.mp4`))!.arrayBuffer()).toEqual(
+    expect(await (await env.OUTPUTS.get(`jobs/${jobId}/1.mp4`))!.arrayBuffer()).toEqual(
       new Uint8Array([9, 8, 7]).buffer,
     );
   });
 
   it.each([
     ['empty result', []],
-    ['another job', [{ key: 'jobs/job_another/final.mp4', mediaType: 'video/mp4' }]],
-    ['traversal', [{ key: 'REPLACE/../final.mp4', mediaType: 'video/mp4' }]],
-    ['missing object', [{ key: 'REPLACE/missing.mp4', mediaType: 'video/mp4' }]],
+    ['another job', [{ key: 'jobs/job_another/1.mp4', mediaType: 'video/mp4' }]],
+    ['traversal', [{ key: 'REPLACE/../1.mp4', mediaType: 'video/mp4' }]],
+    ['missing object', [{ key: 'REPLACE/2.mp4', mediaType: 'video/mp4' }]],
     ['invalid type', [{ key: 'REPLACE/0.mp4', mediaType: 'text/html' }]],
     [
       'duplicate',

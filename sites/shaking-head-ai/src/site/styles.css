@@ -2092,6 +2092,14 @@ fieldset.drop-zone {
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.admin-controls input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 0;
 }
 .admin-controls select,
 .admin-controls button {
@@ -2191,5 +2199,14 @@ fieldset.drop-zone {
   }
   .admin-metrics strong {
     font-size: 23px;
+  }
+}
+@media (max-width: 560px) {
+  .site-header nav.owner-nav > a {
+    display: none;
+  }
+  .site-header nav.owner-nav > a[href="/admin"],
+  .site-header nav.owner-nav > a.avatar {
+    display: inline-flex;
   }
 }

@@ -129,7 +129,7 @@ function AdminPage() {
         </label>
         <label>
           <input type="checkbox" checked={owner} onChange={(event) => setOwner(event.target.checked)} />{' '}
-          包含自己的账户
+          包含本人
         </label>
         <button type="button" onClick={() => setRefresh((value) => value + 1)}>
           刷新
@@ -171,7 +171,7 @@ function AdminPage() {
             <article>
               <h2>已记录模型成本</h2>
               <strong>USD {cost.toFixed(4)}</strong>
-              <span>{unknownCost ? `${unknownCost} 条任务的成本未知` : '当前筛选内的任务'}</span>
+              {unknownCost > 0 && <span>{unknownCost} 条任务的成本未知</span>}
             </article>
           </div>
           <p className="admin-note">

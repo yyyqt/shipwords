@@ -122,7 +122,7 @@ function Layout() {
             shaking head<span className="brand-ai">ai</span>
           </span>
         </Link>
-        <nav>
+        <nav className={isSiteAdmin(user) ? 'owner-nav' : undefined}>
           {isSiteAdmin(user) && <a href="/admin">站长统计</a>}
           <a href="/#examples">The trend</a>
           <a href="/#how-it-works">How it works</a>

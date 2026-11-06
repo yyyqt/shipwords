@@ -8,6 +8,7 @@ import { identify } from '~/lib/track';
 import { m } from '~/paraglide/messages.js';
 import { getLocale } from '~/paraglide/runtime.js';
 import { AccountDialog, AccountLink } from '~/site/account';
+import { isSiteAdmin } from '~/site/admin-access';
 import { SUPPORT_EMAIL } from '~/site/legal';
 import { PricingDialog, PricingLink } from '~/site/pricing';
 import { openSignIn, promptGoogleOneTap, SignInDialog } from '~/site/sign-in';
@@ -26,7 +27,8 @@ export const Route = createRootRoute({
     ],
     // Analytics scripts are skipped in local dev so dev traffic stays out of reports.
     scripts:
-      import.meta.env.DEV || matches.some((match) => match.pathname.startsWith('/phone/'))
+      import.meta.env.DEV ||
+      matches.some((match) => match.pathname.startsWith('/phone/') || match.pathname.startsWith('/admin'))
         ? []
         : analyticsScripts(site),
   }),
@@ -70,25 +72,27 @@ function Document({ children }: { children: ReactNode }) {
 }
 
 function Layout() {
-  const isPhone = useRouterState({ select: (state) => state.location.pathname.startsWith('/phone/') });
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isPhone = pathname.startsWith('/phone/');
+  const isAdmin = pathname.startsWith('/admin');
   const config = Route.useLoaderData();
   const auth = authClient(config.googleClientId);
   const session = auth.useSession();
   const user = session.data?.user;
 
   useEffect(() => {
-    if (!isPhone) captureAttribution();
-  }, [isPhone]);
+    if (!isPhone && !isAdmin) captureAttribution();
+  }, [isPhone, isAdmin]);
 
   useEffect(() => {
     // Show Google One Tap when signed out; skipped when Google is not configured.
-    if (isPhone || session.isPending || session.data || !config.googleClientId) return;
+    if (isPhone || isAdmin || session.isPending || session.data || !config.googleClientId) return;
     promptGoogleOneTap(config.googleClientId);
-  }, [isPhone, session.isPending, session.data, config.googleClientId]);
+  }, [isPhone, isAdmin, session.isPending, session.data, config.googleClientId]);
 
   useEffect(() => {
-    if (!isPhone && user?.id) identify(user.id);
-  }, [isPhone, user?.id]);
+    if (!isPhone && !isAdmin && user?.id) identify(user.id);
+  }, [isPhone, isAdmin, user?.id]);
 
   if (isPhone)
     return (
@@ -119,6 +123,7 @@ function Layout() {
           </span>
         </Link>
         <nav>
+          {isSiteAdmin(user) && <a href="/admin">站长统计</a>}
           <a href="/#examples">The trend</a>
           <a href="/#how-it-works">How it works</a>
           <PricingLink source="nav">{m.common_nav_pricing()}</PricingLink>

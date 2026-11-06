@@ -101,3 +101,9 @@ The generator states the minimum pack purchase ($8.80 for 20 credits), with sign
 
 
 The service is now positioned for animals only. Human example media and the selfie sample have been removed from public assets; homepage, metadata, FAQ, phone-upload copy and the server-owned prompt use animal subjects. This is product scope and prompt guidance, not a claim of automatic face classification before upload.
+
+## Owner statistics
+
+`/admin` and `/api/admin/stats` require an authenticated, verified `explusyqt@gmail.com` account on the server. Anonymous page requests redirect to sign-in; other accounts receive 403. Responses use private/no-store and noindex headers. The owner sees a navigation link; admin pages omit analytics and One Tap.
+
+The dashboard reads D1 without changing billing, credits or jobs. It supports Beijing-calendar 7/30-day and all-time filters, excludes the owner by default, and shows registrations, retained-session login users, payments/refunds by currency, signed-in generation jobs, recorded upstream costs and bounded recent lists. Unowned QA replays are excluded. Login sessions are not a durable login audit and are not online users; deleted/expired-session cleanup can reduce historical counts. Unknown model costs stay marked unknown; money totals exclude fees, tax and dispute losses. GA4 traffic reports remain an external link, not a fabricated or browser-scraped server metric.
